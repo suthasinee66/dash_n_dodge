@@ -1,0 +1,388 @@
+/* ============================================
+   DASH & DODGE — Crossy Road Minimal Sky Theme
+   Palette: Sky Blue, Grass Green, White, Navy
+   ============================================ */
+
+/* Google Fonts are loaded via index.html */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+/* Global Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+body,
+html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #87CEEB;
+  /* Sky Blue */
+  font-family: 'Nunito', 'Mitr', sans-serif;
+  color: #1a3a5c;
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Game Container — bright sky gradient background */
+#game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(180deg,
+      #b8e4f9 0%,
+      #87CEEB 35%,
+      #5bb8e8 60%,
+      #4CAF50 85%,
+      #388E3C 100%);
+}
+
+
+/* Canvas wrapper */
+#phaser-game {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 8px 32px rgba(26, 58, 92, 0.22),
+    0 2px 8px rgba(26, 58, 92, 0.12);
+  border: 3px solid rgba(255, 255, 255, 0.7);
+}
+
+/* UI Overlays layer */
+#ui-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ---- Card Panel ---- */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  padding: 2.2rem 2rem;
+  width: 90%;
+  max-width: 420px;
+  box-shadow:
+    0 12px 40px rgba(26, 58, 92, 0.15),
+    0 2px 8px rgba(26, 58, 92, 0.08);
+  text-align: center;
+  pointer-events: auto;
+  animation: panelFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  color: #1a3a5c;
+}
+
+@keyframes panelFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---- Primary Button ---- */
+.sky-btn {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  margin-top: 0.85rem;
+  font-family: 'Nunito', 'Mitr', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+  color: #fff;
+  box-shadow: 0 4px 0 #0d47a1, 0 6px 16px rgba(33, 150, 243, 0.25);
+  transition: all 0.18s ease;
+}
+
+.sky-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #0d47a1, 0 8px 20px rgba(33, 150, 243, 0.3);
+  filter: brightness(1.06);
+}
+
+.sky-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #0d47a1, 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+/* Green variant (primary action) */
+.sky-btn.green {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  box-shadow: 0 4px 0 #1b5e20, 0 6px 16px rgba(76, 175, 80, 0.25);
+}
+
+.sky-btn.green:hover {
+  box-shadow: 0 6px 0 #1b5e20, 0 8px 20px rgba(76, 175, 80, 0.3);
+}
+
+.sky-btn.green:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #1b5e20, 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+/* Ghost/secondary button */
+.sky-btn.secondary {
+  background: rgba(255, 255, 255, 0.6);
+  color: #1a3a5c;
+  border: 2px solid rgba(26, 58, 92, 0.18);
+  box-shadow: 0 3px 0 rgba(26, 58, 92, 0.12), 0 4px 12px rgba(26, 58, 92, 0.08);
+}
+
+.sky-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 5px 0 rgba(26, 58, 92, 0.12), 0 6px 16px rgba(26, 58, 92, 0.12);
+}
+
+.sky-btn.secondary:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(26, 58, 92, 0.1);
+}
+
+/* ---- Text Input ---- */
+.sky-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-family: 'Nunito', 'Mitr', sans-serif;
+  font-size: 1rem;
+  background: #f0f8ff;
+  border: 2px solid #b3d9f7;
+  border-radius: 14px;
+  color: #1a3a5c;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin: 0.8rem 0;
+  font-weight: 700;
+}
+
+.sky-input::placeholder {
+  color: #90afc5;
+  font-weight: 500;
+}
+
+.sky-input:focus {
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+  background: #fff;
+}
+
+/* ---- Character Card ---- */
+.char-card {
+  flex: 1;
+  border: 2.5px solid #d0e8f5;
+  border-radius: 14px;
+  padding: 12px 10px;
+  cursor: pointer;
+  text-align: center;
+  background: rgba(240, 248, 255, 0.8);
+  transition: all 0.18s ease;
+}
+
+.char-card:hover {
+  border-color: #90CAF9;
+  background: rgba(227, 242, 253, 0.9);
+  transform: translateY(-2px);
+}
+
+.char-card.selected-boy {
+  border-color: #2196F3;
+  background: rgba(227, 242, 253, 0.95);
+  box-shadow: 0 3px 10px rgba(33, 150, 243, 0.18);
+}
+
+.char-card.selected-girl {
+  border-color: #4CAF50;
+  background: rgba(232, 245, 233, 0.95);
+  box-shadow: 0 3px 10px rgba(76, 175, 80, 0.18);
+}
+
+/* ---- Score Badge ---- */
+.score-badge {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 2px solid #90CAF9;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 1rem;
+}
+
+/* ---- Leaderboard row ---- */
+.lb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 8px;
+  border-bottom: 1.5px solid rgba(26, 58, 92, 0.07);
+  font-size: 0.92rem;
+  color: #1a3a5c;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.lb-row:hover {
+  background: rgba(33, 150, 243, 0.05);
+  border-radius: 8px;
+}
+
+.lb-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 8px 10px;
+  border-bottom: 2px solid rgba(33, 150, 243, 0.25);
+  font-weight: 800;
+  color: #1565C0;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ---- Utility ---- */
+.hidden {
+  display: none !important;
+}
+
+/* Divider */
+.sky-divider {
+  border: none;
+  border-top: 1.5px solid rgba(26, 58, 92, 0.1);
+  margin: 1rem 0;
+}
+
+/* Title text helpers */
+.title-main {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1565C0;
+  letter-spacing: 0.5px;
+  line-height: 1.15;
+}
+
+.title-sub {
+  font-size: 0.9rem;
+  color: #5c8fa8;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 1.8rem;
+  margin-top: 0.15rem;
+  text-transform: uppercase;
+}
+
+.section-label {
+  font-size: 0.8rem;
+  color: #5c8fa8;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+  text-align: left;
+}
+
+/* Mobile Screen Fullscreen Adjustments */
+@media (max-width: 768px) {
+  #phaser-game {
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+  
+  #phaser-game canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+  }
+}
+
+/* ============================================
+   Inventory Slots & Shop Custom Styles
+   ============================================ */
+.inv-slot {
+  width: 58px;
+  height: 58px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 3px solid rgba(26, 58, 92, 0.22);
+  border-radius: 14px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(26, 58, 92, 0.12);
+  transition: all 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.inv-slot:hover {
+  transform: translateY(-3px) scale(1.04);
+  border-color: #1565c0;
+}
+.inv-slot:active {
+  transform: translateY(1px) scale(0.96);
+}
+.slot-key {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(21, 101, 192, 0.25);
+}
+.slot-icon {
+  font-size: 20px;
+  font-weight: 900;
+  color: #90a4ae;
+}
+.buy-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.buy-btn:active {
+  transform: translateY(1px);
+}

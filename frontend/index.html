@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/assets/ui/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>หนีล้อ ทะลวงเลน (Dash and Dodge) — เกมข้ามถนนสุดเร้าใจ</title>
+    <meta name="description" content="หนีล้อ ทะลวงเลน (Dash & Dodge) - เกม 2D Web Arcade แนว Endless Crossing ช่วยตัวละครหลบรถและเดินไปข้างหน้าให้ไกลที่สุด แข่งคะแนนบน Leaderboard ได้แล้ววันนี้!" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;700&family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" />
+    
+    <!-- Styling -->
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body>
+    <div id="game-container">
+      <header class="sr-only">
+        <h1>หนีล้อ ทะลวงเลน — Dash and Dodge</h1>
+      </header>
+
+      <!-- Main Game Canvas Wrapper -->
+      <main id="phaser-game"></main>
+
+      <!-- HTML UI Overlays (Menus, Forms, Leaderboards) for Premium Glassmorphic Feel -->
+      <div id="ui-layer" class="hidden">
+        <!-- We will toggle UI overlays from our Phaser Scenes or controllers -->
+      </div>
+    </div>
+
+    <!-- TypeScript Entry Point -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
