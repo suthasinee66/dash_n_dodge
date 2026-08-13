@@ -386,3 +386,10 @@ html {
 .buy-btn:active {
   transform: translateY(1px);
 }
+
+/* Helper class for touch-scrollable areas */
+.scrollable-y {
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch;
+}

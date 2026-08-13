@@ -22,11 +22,10 @@ export class LeaderboardScene extends Phaser.Scene {
           <button id="tab-group-btn" class="sky-btn secondary" style="flex: 1; padding: 8px; font-size: 0.85rem; margin-bottom: 0;">👥 ประวัติห้องกลุ่ม</button>
         </div>
 
-        <div id="leaderboard-container" style="
+        <div id="leaderboard-container" class="scrollable-y" style="
           margin-bottom: 1.2rem;
           text-align: left;
           height: 320px;
-          overflow-y: auto;
           padding-right: 2px;
         ">
           <!-- Dynamically populated -->

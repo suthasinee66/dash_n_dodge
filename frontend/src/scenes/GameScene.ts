@@ -1224,7 +1224,7 @@ export class GameScene extends Phaser.Scene {
         <h3 style="font-size: 1.3rem; margin: 0; font-weight: 900; color: #1a3a5c;">🛒 ร้านตู้กดอัตโนมัติ</h3>
         <div id="shop-coins-display" style="font-weight: 800; color: #b8860b; font-size: 1.15rem; background: rgba(255,253,231,0.9); padding: 4px 10px; border-radius: 12px; border: 1px solid #fff59d;">🪙 ${currentCoins}</div>
       </div>
-      <div style="max-height: 250px; overflow-y: auto; padding-right: 4px; margin-bottom: 12px;">
+      <div class="scrollable-y" style="max-height: 250px; padding-right: 4px; margin-bottom: 12px;">
         ${itemsHtml}
       </div>
       <button id="close-shop-btn" class="sky-btn" style="background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); box-shadow: 0 4px 0 #b71c1c; margin-top: 0;">❌ ปิดร้านค้า</button>
