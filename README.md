@@ -1,4 +1,4 @@
-# Dash and Dodge — หนีล้อ ทะลวงเลน (NheeLorTaloungLane)
+# Dash & Dodge — ขับรถภาษาอะไร (What kind of driving is this?!)
 
 A 2D Web Arcade / Endless Crossing game built with Phaser 3 (TypeScript + Vite) and FastAPI (Python + PostgreSQL).
 

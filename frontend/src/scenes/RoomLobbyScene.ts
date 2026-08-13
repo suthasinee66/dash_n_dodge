@@ -60,7 +60,7 @@ export class RoomLobbyScene extends Phaser.Scene {
 
     const isHost = this.registry.get('isHost') === true;
     const pin = this.registry.get('roomPin');
-    
+
     uiLayer.classList.remove('hidden');
 
     const skinsList: Record<string, string> = {
@@ -75,10 +75,10 @@ export class RoomLobbyScene extends Phaser.Scene {
     };
 
     const playersHtml = this.players.length === 0
-      ? `<div style="grid-column: 1/-1; color: #90a4ae; font-weight: 600; padding: 20px;">👥 กำลังรอผู้เล่นเข้าร่วม...</div>`
+      ? `<div style="grid-column: 1/-1; color: #90a4ae; font-weight: 600; padding: 20px;">🚗💨 กำลังรอผู้เข้าร่วมสู้ชีวิต...</div>`
       : this.players.map(p => {
-          const skinImg = skinsList[p.skin] || skinsList.man;
-          return `
+        const skinImg = skinsList[p.skin] || skinsList.man;
+        return `
             <div style="
               background: rgba(255,255,255,0.85);
               border: 2px solid #e0e0e0;
@@ -96,10 +96,10 @@ export class RoomLobbyScene extends Phaser.Scene {
               </div>
             </div>
           `;
-        }).join('');
+      }).join('');
 
     const actionButton = isHost
-      ? `<button id="lobby-start-btn" class="sky-btn green" style="font-size: 1.1rem; padding: 12px;" ${this.players.length === 0 ? 'disabled' : ''}>🚀 เริ่มเล่นเกม (${this.players.length} คน)</button>`
+      ? `<button id="lobby-start-btn" class="sky-btn green" style="font-size: 1.1rem; padding: 12px;" ${this.players.length === 0 ? 'disabled' : ''}>🚦 เริ่มประลอง (${this.players.length} คน)</button>`
       : `<button class="sky-btn secondary" style="font-size: 1rem; color: #90a4ae; cursor: not-allowed;" disabled>⏳ รอ Host เริ่มเกม...</button>`;
 
     uiLayer.innerHTML = `

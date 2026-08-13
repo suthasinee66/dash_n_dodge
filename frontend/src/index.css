@@ -326,7 +326,7 @@ html {
     width: 100vw !important;
     height: 100vh !important;
   }
-  
+
   #phaser-game canvas {
     width: 100% !important;
     height: 100% !important;
@@ -353,13 +353,16 @@ html {
   box-shadow: 0 8px 20px rgba(26, 58, 92, 0.12);
   transition: all 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 .inv-slot:hover {
   transform: translateY(-3px) scale(1.04);
   border-color: #1565c0;
 }
+
 .inv-slot:active {
   transform: translateY(1px) scale(0.96);
 }
+
 .slot-key {
   position: absolute;
   top: -8px;
@@ -374,15 +377,18 @@ html {
   white-space: nowrap;
   box-shadow: 0 2px 4px rgba(21, 101, 192, 0.25);
 }
+
 .slot-icon {
   font-size: 20px;
   font-weight: 900;
   color: #90a4ae;
 }
+
 .buy-btn:hover {
   filter: brightness(1.08);
   transform: translateY(-1px);
 }
+
 .buy-btn:active {
   transform: translateY(1px);
 }
@@ -392,6 +398,7 @@ html {
 .scrollable-y * {
   touch-action: pan-y !important;
 }
+
 .scrollable-y {
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;

@@ -11,10 +11,10 @@ export class GameOverScene extends Phaser.Scene {
     const uiLayer = document.getElementById('ui-layer');
     if (!uiLayer) return;
 
-    const score    = this.registry.get('lastScore') ?? 0;
-    const best     = this.registry.get('bestScore') ?? 0;
+    const score = this.registry.get('lastScore') ?? 0;
+    const best = this.registry.get('bestScore') ?? 0;
     const nickname = this.registry.get('nickname') || 'PLAYER';
-    const coins    = this.registry.get('lastCoins') ?? 0;
+    const coins = this.registry.get('lastCoins') ?? 0;
 
     SoundEffects.playGameOver(this);
 

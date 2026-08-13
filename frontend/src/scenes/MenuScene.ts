@@ -19,13 +19,13 @@ export class MenuScene extends Phaser.Scene {
     uiLayer.innerHTML = `
       <div class="glass-panel">
         <!-- Logo / Title -->
-        <div style="font-size: 3rem; margin-bottom: 0.1rem; line-height: 1;">🐸</div>
-        <h2 class="title-main">หนีล้อ ทะลวงเลน</h2>
+        <div style="font-size: 3rem; margin-bottom: 0.1rem; line-height: 1;">🤬🚗💨</div>
+        <h2 class="title-main">ขับรถภาษาอะไร</h2>
         <p class="title-sub">Dash &amp; Dodge</p>
 
         <!-- Buttons -->
-        <button id="play-btn" class="sky-btn green">🎮 เริ่มเล่น (คนเดียว)</button>
-        <button id="multi-btn" class="sky-btn" style="background: #e1f5fe; border-color: #0288d1; color: #0288d1; margin-bottom: 0.6rem;">👥 เล่นหลายคน (Lobby)</button>
+        <button id="play-btn" class="sky-btn green">🚗💨 ลุย!! (คนเดียว)</button>
+        <button id="multi-btn" class="sky-btn" style="background: #e1f5fe; border-color: #0288d1; color: #0288d1; margin-bottom: 0.6rem;">⚔️ ดวลหลายคน!! (Lobby)</button>
         <button id="leaderboard-btn" class="sky-btn secondary">🏆 อันดับคะแนน</button>
 
         <!-- Sound Toggle -->
@@ -106,7 +106,7 @@ export class MenuScene extends Phaser.Scene {
 
     uiLayer.innerHTML = `
       <div class="glass-panel" style="max-width: 480px; width: 95%;">
-        <div style="font-size: 2rem; margin-bottom: 0.2rem;">👤</div>
+        <div style="font-size: 2rem; margin-bottom: 0.2rem;">🤬</div>
         <h2 class="title-main" style="font-size: 1.5rem;">ข้อมูลผู้เล่น</h2>
         <p style="font-size: 0.82rem; color: #5c8fa8; margin-bottom: 0.8rem; font-weight: 600;">กรอกชื่อและเลือกตัวละครก่อนเล่น</p>
 
@@ -143,8 +143,8 @@ export class MenuScene extends Phaser.Scene {
           background: rgba(255,255,255,0.4);
         ">
           ${skinsList.map(skin => {
-            const isSelected = skin.id === selectedSkin;
-            return `
+      const isSelected = skin.id === selectedSkin;
+      return `
               <div id="char-${skin.id}" class="char-card" style="
                 border: 2px solid ${isSelected ? skin.border : 'rgba(0,0,0,0.06)'};
                 background: ${isSelected ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.6)'};
@@ -166,20 +166,20 @@ export class MenuScene extends Phaser.Scene {
                 ">${skin.label}</div>
               </div>
             `;
-          }).join('')}
+    }).join('')}
         </div>
 
-        <button id="start-game-btn" class="sky-btn green">🚀 เริ่มเกม</button>
+        <button id="start-game-btn" class="sky-btn green">🚦 ลุยเลย!</button>
         <button id="back-to-menu-btn" class="sky-btn secondary">← ย้อนกลับ</button>
       </div>
     `;
 
     this.registry.set('characterSkin', selectedSkin);
 
-    const inputEl  = document.getElementById('nickname-input') as HTMLInputElement;
-    const errorEl  = document.getElementById('nickname-error') as HTMLElement;
+    const inputEl = document.getElementById('nickname-input') as HTMLInputElement;
+    const errorEl = document.getElementById('nickname-error') as HTMLElement;
     const startBtn = document.getElementById('start-game-btn');
-    const backBtn  = document.getElementById('back-to-menu-btn');
+    const backBtn = document.getElementById('back-to-menu-btn');
 
     inputEl?.focus();
     inputEl?.select();
@@ -259,7 +259,7 @@ export class MenuScene extends Phaser.Scene {
 
     uiLayer.innerHTML = `
       <div class="glass-panel" style="max-width: 440px; width: 95%;">
-        <div style="font-size: 2.8rem; margin-bottom: 0.2rem; line-height: 1;">👥</div>
+        <div style="font-size: 2.8rem; margin-bottom: 0.2rem; line-height: 1;">🚗💥🚗</div>
         <h2 class="title-main">เล่นหลายคน (Lobby)</h2>
         <p style="font-size: 0.85rem; color: #5c8fa8; margin-bottom: 1.5rem; font-weight: 600;">เลือกสร้างห้องในฐานะ Host หรือเข้าร่วมห้องด้วย PIN</p>
 
@@ -313,7 +313,7 @@ export class MenuScene extends Phaser.Scene {
 
     uiLayer.innerHTML = `
       <div class="glass-panel" style="max-width: 480px; width: 95%;">
-        <div style="font-size: 2rem; margin-bottom: 0.2rem;">👤</div>
+        <div style="font-size: 2rem; margin-bottom: 0.2rem;">🤬</div>
         <h2 class="title-main" style="font-size: 1.5rem;">เข้าร่วมห้อง</h2>
         <p style="font-size: 0.82rem; color: #5c8fa8; margin-bottom: 0.8rem; font-weight: 600;">กรอก PIN 4 หลัก ชื่อ และเลือกตัวละคร</p>
 
@@ -359,8 +359,8 @@ export class MenuScene extends Phaser.Scene {
           background: rgba(255,255,255,0.4);
         ">
           ${skinsList.map(skin => {
-            const isSelected = skin.id === selectedSkin;
-            return `
+      const isSelected = skin.id === selectedSkin;
+      return `
               <div id="char-${skin.id}" class="char-card" style="
                 border: 2px solid ${isSelected ? skin.border : 'rgba(0,0,0,0.06)'};
                 background: ${isSelected ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.6)'};
@@ -382,10 +382,10 @@ export class MenuScene extends Phaser.Scene {
                 ">${skin.label}</div>
               </div>
             `;
-          }).join('')}
+    }).join('')}
         </div>
 
-        <button id="join-submit-btn" class="sky-btn green">🚀 เข้าร่วม</button>
+        <button id="join-submit-btn" class="sky-btn green">🚦 เข้าร่วม</button>
         <button id="back-to-mp-btn" class="sky-btn secondary">← ย้อนกลับ</button>
       </div>
     `;

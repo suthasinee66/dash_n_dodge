@@ -196,7 +196,7 @@ export class LeaderboardScene extends Phaser.Scene {
           day: '2-digit',
           month: 'short'
         });
-        
+
         const top3 = (history.results || []).slice(0, 3);
         const podiumSummary = top3.map((p: any) => {
           let emoji = '🥇';

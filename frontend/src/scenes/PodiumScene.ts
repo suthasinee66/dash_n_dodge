@@ -9,7 +9,7 @@ export class PodiumScene extends Phaser.Scene {
 
   create(): void {
     this.leaderboard = this.registry.get('resultsLeaderboard') || [];
-    
+
     // Close WebSocket
     const ws = this.registry.get('roomWs') as WebSocket;
     if (ws) {
@@ -141,8 +141,8 @@ export class PodiumScene extends Phaser.Scene {
           border: 1px solid rgba(0,0,0,0.04);
         ">
           ${others.map((p, idx) => {
-            const skinImg = skinsList[p.skin] || skinsList.man;
-            return `
+        const skinImg = skinsList[p.skin] || skinsList.man;
+        return `
               <div style="
                 display: flex;
                 justify-content: space-between;
@@ -162,7 +162,7 @@ export class PodiumScene extends Phaser.Scene {
                 <div style="font-weight: 850; color: #1565C0;">${p.score}</div>
               </div>
             `;
-          }).join('')}
+      }).join('')}
         </div>
       `;
 

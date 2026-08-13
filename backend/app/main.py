@@ -11,7 +11,7 @@ except Exception as e:
     print(f"[DATABASE STARTUP ERROR] Failed to create tables: {e}")
 
 app = FastAPI(
-    title="Dash and Dodge - หนีล้อ ทะลวงเลน API",
+    title="Dash and Dodge - ขับรถภาษาอะไร API",
     description="Backend API for online leaderboard system",
     version="1.0.0"
 )
