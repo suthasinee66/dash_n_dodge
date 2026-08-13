@@ -1232,6 +1232,27 @@ export class GameScene extends Phaser.Scene {
 
     uiLayer.appendChild(shopModal);
 
+    // ── Native touch-scroll fix for Phaser overlay ──────────────────────────
+    // Phaser intercepts all touch events on the canvas layer. We must manually
+    // drive scrollTop from touchstart/touchmove so the list scrolls reliably.
+    const scrollContainer = shopModal.querySelector('.scrollable-y') as HTMLElement | null;
+    if (scrollContainer) {
+      let touchStartY = 0;
+      let scrollStartTop = 0;
+
+      scrollContainer.addEventListener('touchstart', (e: TouchEvent) => {
+        touchStartY = e.touches[0].clientY;
+        scrollStartTop = scrollContainer.scrollTop;
+      }, { passive: true });
+
+      scrollContainer.addEventListener('touchmove', (e: TouchEvent) => {
+        const deltaY = touchStartY - e.touches[0].clientY;
+        scrollContainer.scrollTop = scrollStartTop + deltaY;
+        e.stopPropagation(); // stop Phaser from eating this event
+      }, { passive: true });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Bind listeners
     document.getElementById('close-shop-btn')?.addEventListener('click', () => this.closeShop());
     const buyBtns = shopModal.querySelectorAll('.buy-btn');
