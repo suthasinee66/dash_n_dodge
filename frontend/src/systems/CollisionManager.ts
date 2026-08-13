@@ -10,7 +10,7 @@ export class CollisionManager {
 
   // Grace period after landing on a river lane before drowning kicks in (ms)
   // This prevents instant-death when the tween is still settling.
-  private readonly DROWN_GRACE_MS = 150;
+  private readonly DROWN_GRACE_MS = 90; // +10 ms grace — reduces false drowning on raft-to-island hops
 
   private riverLandingTime: number = -1;
 
@@ -37,7 +37,7 @@ export class CollisionManager {
         // Midas Touch Effect
         if ((this.scene as any).isMidasActive) {
           const vehicle = vehicleObj as any;
-
+          
           // Play coin chime sound
           (this.scene as any).sound.play('snd_score');
 
@@ -164,7 +164,7 @@ export class CollisionManager {
   private _findRaftUnderPlayer(player: Player, raftManager: RaftManager): Raft | null {
     const rafts = raftManager.getRaftsAtRow(player.gridY);
     for (const raft of rafts) {
-      const halfW = raft.raftWidth / 2 + 12; // small tolerance
+      const halfW = raft.raftWidth / 2 + 22; // +16 px extra tolerance — prevents false-drown on raft edges
       if (Math.abs(raft.x - player.x) < halfW) {
         return raft;
       }
