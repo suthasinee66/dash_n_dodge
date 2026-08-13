@@ -148,24 +148,27 @@ export class GameScene extends Phaser.Scene {
       this.clouds.add(cloud);
     }
 
+    const viewWidth = this.cameras.main.width;
+    const viewHeight = this.cameras.main.height;
+
     // Countdown overlay (full-screen dim)
     this.countdownOverlay = this.add.rectangle(
-      240, 400, 480, 800,
-      0x000000, 0.55
+      viewWidth / 2, viewHeight / 2, viewWidth, viewHeight,
+      0x000000, 0.70
     ).setScrollFactor(0).setDepth(299);
 
     // Countdown text — large, center-screen
-    this.countdownText = this.add.text(240, 400, '', {
-      font: 'bold 220px Nunito, Mitr, sans-serif',
+    this.countdownText = this.add.text(viewWidth / 2, viewHeight / 2, '', {
+      font: 'bold 280px Nunito, Mitr, sans-serif',
       color: '#ffffff',
       stroke: '#1565C0',
-      strokeThickness: 18,
+      strokeThickness: 80,
       align: 'center',
       shadow: {
         offsetX: 0,
-        offsetY: 6,
+        offsetY: 8,
         color: '#0d47a1',
-        blur: 20,
+        blur: 24,
         fill: true
       }
     }).setOrigin(0.5).setScrollFactor(0).setDepth(300);
@@ -372,7 +375,7 @@ export class GameScene extends Phaser.Scene {
       if (diffConfig.tier === 'hard' || diffConfig.tier === 'extreme') {
         const buildCount = Phaser.Math.Between(1, 2);
         const blockedCols = new Set<number>();
-        
+
         // Avoid spawning buildings on top of trees or shop
         const avoidCols = new Set<number>();
         if (lane.shopCol !== null) avoidCols.add(lane.shopCol);
@@ -380,7 +383,7 @@ export class GameScene extends Phaser.Scene {
 
         const rowBelow = this.buildings.get(gridY + 1);
         const rowAbove = this.buildings.get(gridY - 1);
-        
+
         for (let i = 0; i < buildCount; i++) {
           let col: number = 6;
           let attempts = 0;
@@ -388,15 +391,15 @@ export class GameScene extends Phaser.Scene {
           while (!isValid && attempts < 25) {
             col = Phaser.Math.Between(1, 10);
             attempts++;
-            
+
             const hasAdjacentBelow = rowBelow && (rowBelow.has(col - 1) || rowBelow.has(col) || rowBelow.has(col + 1));
             const hasAdjacentAbove = rowAbove && (rowAbove.has(col - 1) || rowAbove.has(col) || rowAbove.has(col + 1));
-            
+
             if (col !== 6 && !blockedCols.has(col) && !avoidCols.has(col) && !hasAdjacentBelow && !hasAdjacentAbove) {
               isValid = true;
             }
           }
-          
+
           if (isValid) {
             blockedCols.add(col);
             const houseKeys = [
@@ -405,7 +408,7 @@ export class GameScene extends Phaser.Scene {
             ];
             const houseKey = Phaser.Utils.Array.GetRandom(houseKeys);
             const buildSprite = this.add.sprite(col * 40 + 20, 30, houseKey);
-            
+
             // Set proportional scale based on target width
             let targetWidth = 48;
             if (houseKey.includes('Small')) {
@@ -413,7 +416,7 @@ export class GameScene extends Phaser.Scene {
             }
             const ratio = targetWidth / buildSprite.width;
             buildSprite.setScale(ratio);
-            
+
             buildSprite.setOrigin(0.5, 0.65);
             buildSprite.setDepth(9);
             lane.add(buildSprite);
@@ -466,13 +469,13 @@ export class GameScene extends Phaser.Scene {
 
   private getBlockedColsAtRow(gridY: number): Set<number> {
     const blocked = new Set<number>();
-    
+
     // Add buildings
     const buildCols = this.buildings.get(gridY);
     if (buildCols) {
       buildCols.forEach(c => blocked.add(c));
     }
-    
+
     // Add shop and trees from lane
     const lane = this.lanes.get(gridY);
     if (lane) {
@@ -481,7 +484,7 @@ export class GameScene extends Phaser.Scene {
       }
       lane.treeCols.forEach(c => blocked.add(c));
     }
-    
+
     return blocked;
   }
 
@@ -750,10 +753,10 @@ export class GameScene extends Phaser.Scene {
   // ─── Countdown ────────────────────────────────────────────────────────────
 
   private startCountdown(): void {
-    this.runCountdownStep('3', '#64B5F6', false, () => {
-      this.runCountdownStep('2', '#42A5F5', false, () => {
-        this.runCountdownStep('1', '#EF5350', false, () => {
-          this.runCountdownStep('GO!', '#66BB6A', true, () => {
+    this.runCountdownStep('3', '#FFFFFF', false, () => {
+      this.runCountdownStep('2', '#FFFFFF', false, () => {
+        this.runCountdownStep('1', '#FFFFFF', false, () => {
+          this.runCountdownStep('GO!', '#FFFFFF', true, () => {
             // Remove overlay and text, then start game
             if (this.countdownOverlay && this.countdownOverlay.active) {
               this.tweens.add({
@@ -786,8 +789,8 @@ export class GameScene extends Phaser.Scene {
     this.countdownText.setText(text);
     this.countdownText.setColor(color);
 
-    // For GO! use slightly smaller font to fit nicely
-    this.countdownText.setFontSize(isGo ? 140 : 220);
+    // For GO! use slightly smaller font to fit nicely (5x original size)
+    this.countdownText.setFontSize(isGo ? 700 : 1100);
     this.countdownText.setAlpha(1);
 
     // Punch-in: start big, slam to normal size, then fade out
@@ -882,13 +885,13 @@ export class GameScene extends Phaser.Scene {
   private endGameSession(isDrowning: boolean): void {
     this.isGameOver = true;
     this.touchControls?.destroy();
-    
+
     if (isDrowning) {
       this.player.triggerDrown();
     } else {
       this.player.triggerCrash();
     }
-    
+
     this.physics.pause();
     this._storeScores();
 
