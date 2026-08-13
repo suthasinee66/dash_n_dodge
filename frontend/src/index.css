@@ -388,8 +388,11 @@ html {
 }
 
 /* Helper class for touch-scrollable areas */
+.scrollable-y,
+.scrollable-y * {
+  touch-action: pan-y !important;
+}
 .scrollable-y {
   overflow-y: auto !important;
-  touch-action: pan-y !important;
   -webkit-overflow-scrolling: touch;
 }
