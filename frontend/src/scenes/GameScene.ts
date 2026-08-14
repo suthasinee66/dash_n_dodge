@@ -166,7 +166,10 @@ fontStyle: 'bold',
     this.bullets = this.physics.add.group();
     this.clouds = this.add.group();
 
+    this.clouds = this.add.group();
+
     this.setupHUD();
+    this.setupGameResultListener();
 
     // Spawn 5 drifting clouds at start (restricted to top 30% of screen)
     const topLimit = this.cameras.main.height * 0.3;
@@ -1094,6 +1097,70 @@ fontStyle: 'bold',
     }
   }
 
+  private setupGameResultListener(): void {
+  const isMultiplayer = this.registry.get('isMultiplayer') === true;
+  if (!isMultiplayer) return;
+
+  const ws = this.registry.get('roomWs') as WebSocket;
+  if (!ws) return;
+
+  ws.addEventListener('message', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+
+      if (data.type !== 'results') return;
+
+      console.log('🏁 เกมถูกยุติโดย Host → ไปหน้าสรุปผลทันที');
+
+      // ป้องกันการทำงานซ้ำ
+      if (this.isGameOver) return;
+
+      this.isGameOver = true;
+
+      // หยุดเกมทันที
+      this.physics.pause();
+
+      // หยุดระบบรถ / แพ
+      if (this.trafficManager) {
+        this.trafficManager.timeScale = 0;
+      }
+
+      if (this.raftManager) {
+        this.raftManager.timeScale = 0;
+      }
+
+      // หยุด Item Countdown
+      if (this.activeItemTimer) {
+        this.activeItemTimer.remove(false);
+        this.activeItemTimer = undefined;
+      }
+
+      // ลบ Touch Controls
+      this.touchControls?.destroy();
+
+      // เก็บผลการแข่งขัน
+      this.registry.set(
+        'resultsLeaderboard',
+        data.leaderboard || []
+      );
+
+      // ล้าง HTML UI
+      const uiLayer = document.getElementById('ui-layer');
+
+      if (uiLayer) {
+        uiLayer.innerHTML = '';
+        uiLayer.classList.add('hidden');
+      }
+
+      // เปลี่ยนไปหน้าสรุปผลทันที
+      this.scene.start('PodiumScene');
+
+    } catch (error) {
+      console.error('❌ Error handling results:', error);
+    }
+  });
+}
+
   // ─── Death handlers ───────────────────────────────────────────────────────
 
   private handlePlayerCollision(): void {
@@ -1355,12 +1422,20 @@ fontStyle: 'bold',
           if (data.type === 'scoreboard_update') {
             this.updatePlayerScoreboard(data.players);
           } else if (data.type === 'results') {
-            this.registry.set('resultsLeaderboard', data.leaderboard);
-            ws.onmessage = null;
-            uiLayer.classList.add('hidden');
-            uiLayer.innerHTML = '';
-            this.scene.start('PodiumScene');
-          }
+  this.registry.set(
+    'resultsLeaderboard',
+    data.leaderboard || []
+  );
+
+  this.isGameOver = true;
+
+  ws.onmessage = null;
+
+  uiLayer.classList.add('hidden');
+  uiLayer.innerHTML = '';
+
+  this.scene.start('PodiumScene');
+}
         } catch (e) {
           console.error(e);
         }
