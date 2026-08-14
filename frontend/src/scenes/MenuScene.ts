@@ -383,50 +383,6 @@ export class MenuScene extends Phaser.Scene {
     this.renderMainMenu();
   }
 
-  private skinsGridHtml(selectedSkin: string): string {
-    return `
-      <div class="dd-skins-grid" id="skins-grid">
-        ${SKINS.map((skin, i) => {
-          const isSelected = skin.id === selectedSkin;
-          return `
-            <div id="char-${skin.id}" class="dd-char-card${isSelected ? ' dd-selected' : ''}"
-                 style="animation-delay:${i * 0.03}s; ${isSelected ? `border-color:${skin.border};` : ''}"
-                 title="${skin.label}" aria-label="${skin.label}">
-              <span class="dd-check">✓</span>
-              <div class="dd-avatar-ring" style="background:${isSelected ? skin.border + '22' : 'rgba(0,0,0,.04)'}; border-color:${isSelected ? skin.border : 'transparent'};">
-                <img src="${skin.img}" alt="${skin.label}" />
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-  }
-
-  private bindSkinsGrid(getSelected: () => string, setSelected: (id: string) => void): void {
-    SKINS.forEach(skin => {
-      const card = document.getElementById(`char-${skin.id}`);
-      card?.addEventListener('click', () => {
-        if (getSelected() === skin.id) return;
-
-        SKINS.forEach(s => {
-          const prevCard = document.getElementById(`char-${s.id}`);
-          const prevRing = prevCard?.querySelector('.dd-avatar-ring') as HTMLElement | null;
-          prevCard?.classList.remove('dd-selected');
-          if (prevCard) prevCard.style.borderColor = 'rgba(0,0,0,.06)';
-          if (prevRing) { prevRing.style.background = 'rgba(0,0,0,.04)'; prevRing.style.borderColor = 'transparent'; }
-        });
-
-        setSelected(skin.id);
-        this.registry.set('characterSkin', skin.id);
-
-        card.classList.add('dd-selected');
-        card.style.borderColor = skin.border;
-        const ring = card.querySelector('.dd-avatar-ring') as HTMLElement | null;
-        if (ring) { ring.style.background = skin.border + '22'; ring.style.borderColor = skin.border; }
-      });
-    });
-  }
 
   private showFieldError(errorEl: HTMLElement, message: string): void {
     errorEl.textContent = message;

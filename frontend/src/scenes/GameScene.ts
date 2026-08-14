@@ -1836,7 +1836,6 @@ private startItemCountdown(itemId: string, durationMs: number): void {
     this.activeItemTimer = undefined;
   }
 
-  this.activeItemId = itemId;
   this.activeItemEndTime = this.time.now + durationMs;
 
   const itemNames: Record<string, string> = {
@@ -1901,7 +1900,6 @@ private stopItemCountdown(): void {
     this.activeItemTimer = undefined;
   }
 
-  this.activeItemId = null;
   this.activeItemEndTime = 0;
 
   if (this.itemCountdownText?.active) {
