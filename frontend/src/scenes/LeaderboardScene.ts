@@ -31,7 +31,7 @@ export class LeaderboardScene extends Phaser.Scene {
           <!-- Dynamically populated -->
         </div>
 
-        <button id="back-btn" class="sky-btn secondary">← กลับหน้าหลัก</button>
+        <button id="back-btn" class="sky-btn secondary">กลับหน้าหลัก</button>
       </div>
     `;
 

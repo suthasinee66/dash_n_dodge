@@ -51,10 +51,7 @@ export class Player extends Phaser.GameObjects.Sprite {
 
     this.gridX = startGridX;
     this.gridY = startGridY;
-
-    // Toon characters are Poses HD (high res 192x256), they need small scale (0.21) to match original man/woman height (scaled 2x)
-    const toonSkins = ['female_adventurer', 'female_person', 'male_adventurer', 'male_person', 'robot', 'zombie'];
-    this.baseScale = toonSkins.includes(skin) ? 0.21 : 3.6;
+    this.baseScale = 0.21 ;
 
     this.setScale(this.baseScale);
     const originY = 0.8;
@@ -349,9 +346,9 @@ export class Player extends Phaser.GameObjects.Sprite {
     super.preUpdate(time, delta);
     if (this.shieldGraphics) {
       this.shieldGraphics.clear();
-      this.shieldGraphics.lineStyle(3, 0x00e5ff, 0.85);
-      this.shieldGraphics.strokeCircle(this.x, this.y, 22);
-      this.shieldGraphics.setDepth(this.depth + 1);
+this.shieldGraphics.fillStyle(0x00bfff, 0.25);
+this.shieldGraphics.fillCircle(this.x, this.y - 8, 28);
+this.shieldGraphics.setDepth(this.depth + 1);
     }
   }
 

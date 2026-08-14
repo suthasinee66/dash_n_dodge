@@ -64,14 +64,20 @@ export class RoomLobbyScene extends Phaser.Scene {
     uiLayer.classList.remove('hidden');
 
     const skinsList: Record<string, string> = {
-      man: '/assets/characters/man.png',
-      woman: '/assets/characters/woman.png',
-      female_adventurer: '/assets/characters/female_adventurer.png',
-      female_person: '/assets/characters/female_person.png',
-      male_adventurer: '/assets/characters/male_adventurer.png',
-      male_person: '/assets/characters/male_person.png',
-      robot: '/assets/characters/robot.png',
-      zombie: '/assets/characters/zombie.png'
+      sea_urchin: '/assets/characters/sea_urchin.png',
+      shark: '/assets/characters/shark.png',
+      squid: '/assets/characters/squid.png',
+      TRex: '/assets/characters/TRex.png',
+      triceratops: '/assets/characters/triceratops.png',
+      turtle: '/assets/characters/turtle.png',
+      lionfish: '/assets/characters/lionfish.png',
+      elephant: '/assets/characters/elephant.png',
+      dolphin: '/assets/characters/dolphin.png',
+      dog: '/assets/characters/dog.png',
+      doctor_stringray: '/assets/characters/doctor_stringray.png',
+      brachiosaurus: '/assets/characters/brachiosaurus.png',
+      baby_stringray: '/assets/characters/baby_stringray.png',
+      baby_dolphin: '/assets/characters/baby_dolphin.png',
     };
 
     const playersHtml = this.players.length === 0
@@ -134,7 +140,7 @@ export class RoomLobbyScene extends Phaser.Scene {
 
         <div style="display: flex; flex-direction: column; gap: 8px;">
           ${actionButton}
-          <button id="lobby-leave-btn" class="sky-btn secondary">← ออกจากห้อง</button>
+          <button id="lobby-leave-btn" class="sky-btn secondary">ออกจากห้อง</button>
         </div>
       </div>
     `;

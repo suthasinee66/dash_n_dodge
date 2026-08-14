@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player.ts';
 import { Vehicle } from '../entities/Vehicle.ts';
-import { Lane, LaneConfig } from '../entities/Lane.ts';
+import { Lane, LaneConfig, GameTheme } from '../entities/Lane.ts';
 import { TrafficManager } from '../systems/TrafficManager.ts';
 import { RaftManager } from '../systems/RaftManager.ts';
 import { CoinManager } from '../systems/CoinManager.ts';
@@ -11,6 +11,7 @@ import { ScoreManager } from '../systems/ScoreManager.ts';
 import { DifficultyManager } from '../systems/DifficultyManager.ts';
 import { TouchControls } from '../ui/TouchControls.ts';
 import { SoundEffects } from '../utils/sound.ts';
+
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -23,7 +24,7 @@ export class GameScene extends Phaser.Scene {
   private collisionManager!: CollisionManager;
   private scoreManager!: ScoreManager;
   private touchControls!: TouchControls;
-
+  private readonly GAME_FONT = "'Noto Sans Thai', sans-serif";
   // Bullets & buildings groups/state
   private bullets!: Phaser.Physics.Arcade.Group;
   private buildings: Map<number, Set<number>> = new Map(); // gridY -> Set of gridX
@@ -60,6 +61,18 @@ export class GameScene extends Phaser.Scene {
   public isMidasActive: boolean = false;
   private currentPlayersList: any[] = [];
 
+  // Active item countdown
+  private itemCountdownText!: Phaser.GameObjects.Text;
+  private itemCountdownBg!: Phaser.GameObjects.Graphics;
+  private activeItemTimer?: Phaser.Time.TimerEvent;
+  private activeItemEndTime: number = 0;
+  private activeItemId: string | null = null;
+
+  // ─── Theme progression ─────────────────────────────
+private shopsPassed: number = 0;
+private currentTheme: GameTheme = 'garden';
+private passedShopRows: Set<number> = new Set();
+
 
   constructor() {
     super('GameScene');
@@ -67,7 +80,8 @@ export class GameScene extends Phaser.Scene {
 
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
-  create(): void {
+  async create(): Promise<void> {
+    
     const isMultiplayer = this.registry.get('isMultiplayer') === true;
     const isHost = this.registry.get('isHost') === true;
 
@@ -85,6 +99,11 @@ export class GameScene extends Phaser.Scene {
     this.isCountdown = true;
     this.lives = 3;
     this.streakText = null;
+
+    this.shopsPassed = 0;
+    this.currentTheme = 'garden';
+    this.passedShopRows.clear();
+
     this.physics.resume();
 
     // Reset skills
@@ -104,6 +123,23 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.player = new Player(this, 6, 18);
+  // ─── Active Item Countdown ───────────────────────
+this.itemCountdownText = this.add.text(
+  this.player.x,
+  this.player.y - 48,
+  '',
+  {
+    fontFamily: this.GAME_FONT,
+fontSize: '15px',
+fontStyle: 'bold',
+    color: '#ffffff',
+    align: 'center'
+  }
+)
+  .setOrigin(0.5)
+  .setDepth(500)
+  .setVisible(false);
+
     this.player.onMoveComplete((nextX, nextY) => {
       // Shop trigger
       this.checkShopTrigger(nextX, nextY);
@@ -159,10 +195,12 @@ export class GameScene extends Phaser.Scene {
 
     // Countdown text — large, center-screen
     this.countdownText = this.add.text(viewWidth / 2, viewHeight / 2, '', {
-      font: 'bold 280px Nunito, Mitr, sans-serif',
+      fontFamily: this.GAME_FONT,
+fontSize: '22px',
+fontStyle: 'bold',
       color: '#ffffff',
       stroke: '#1565C0',
-      strokeThickness: 80,
+      strokeThickness: 8,
       align: 'center',
       shadow: {
         offsetX: 0,
@@ -215,7 +253,9 @@ export class GameScene extends Phaser.Scene {
 
     // Instruction text
     this.instructText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height - 20, 'ลูกศร / WASD หรือปัดหน้าจอเพื่อเดิน', {
-      font: '13px Mitr, Nunito, sans-serif',
+      fontFamily: this.GAME_FONT,
+fontSize: '13px',
+fontStyle: 'bold',
       color: '#1a3a5c',
       backgroundColor: 'rgba(255,255,255,0.7)',
       padding: { x: 8, y: 4 }
@@ -226,6 +266,14 @@ export class GameScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (this.isGameOver) return;
+
+      // ทำให้ Countdown ติดตามหัวตัวละคร
+if (this.itemCountdownText?.active && this.itemCountdownText.visible) {
+  this.itemCountdownText.setPosition(
+    this.player.x,
+    this.player.y - 48
+  );
+}
 
     // Handle Item usage from keyboard hotkeys
     if (this.input.keyboard && !this.isShopOpen && !this.isCountdown) {
@@ -362,7 +410,15 @@ export class GameScene extends Phaser.Scene {
     const direction = gridY % 2 === 0 ? 'left' : 'right';
     const speed = 60 + Math.min(120, Math.abs(gridY) * 2.5);
 
-    const config: LaneConfig = { gridY, type, direction, speed, vehicleTypes: ['vehicle'], hasShop };
+    const config: LaneConfig = {
+  gridY,
+  type,
+  direction,
+  speed,
+  vehicleTypes: ['vehicle'],
+  hasShop,
+  theme: this.currentTheme
+};
     const lane = new Lane(this, config);
 
     if (type === 'river') {
@@ -534,75 +590,280 @@ export class GameScene extends Phaser.Scene {
   // ─── HUD ───────────────────────────────────────────────────────────────────
 
   private setupHUD(): void {
-    const nickname = this.registry.get('nickname') || 'PLAYER';
+  const nickname = this.registry.get('nickname') || 'PLAYER';
+// ─────────────────────────────────────────────
+// SCORE HUD
+// ─────────────────────────────────────────────
 
-    this.scoreText = this.add.text(12, 12, `${nickname}\nSCORE: 0\nBEST: ${this.scoreManager.getBestScore()}`, {
-      font: 'bold 14px Nunito, Mitr, sans-serif',
-      color: '#1a3a5c',
-      backgroundColor: 'rgba(255,255,255,0.82)',
-      padding: { x: 8, y: 6 },
-      align: 'left'
-    }).setScrollFactor(0).setDepth(200);
+const scoreBg = this.add.graphics();
 
-    this.difficultyText = this.add.text(468, 12, 'ง่าย', {
-      font: 'bold 12px Nunito, Mitr, sans-serif',
-      color: '#388E3C',
-      backgroundColor: 'rgba(255,255,255,0.82)',
-      padding: { x: 8, y: 6 }
-    }).setOrigin(1, 0).setScrollFactor(0).setDepth(200);
+// Shadow
+scoreBg.fillStyle(0x1a3a5c, 0.12);
+scoreBg.fillRoundedRect(
+  12,
+  16,
+  100,
+  82,
+  16
+);
 
-    this.coinText = this.add.text(468, 38, '🪙 0', {
-      font: 'bold 12px Nunito, Mitr, sans-serif',
-      color: '#b8860b',
-      backgroundColor: 'rgba(255,255,255,0.82)',
-      padding: { x: 8, y: 6 }
-    }).setOrigin(1, 0).setScrollFactor(0).setDepth(200);
+// Main white card
+scoreBg.fillStyle(0xffffff, 0.96);
+scoreBg.fillRoundedRect(
+  12,
+  12,
+  100,
+  82,
+  16
+);
 
-    // Setup Lives (Hearts) in top center
-    this.livesText = this.add.text(this.cameras.main.width / 2, 12, '❤️ ❤️ ❤️', {
-      font: 'bold 16px Outfit, Mitr, sans-serif',
-      color: '#d32f2f',
-      backgroundColor: 'rgba(255,255,255,0.82)',
-      padding: { x: 10, y: 6 }
-    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(200);
-    this.updateLivesUI();
+// Soft blue panel
+scoreBg.fillStyle(0xf4faff, 0.96);
+scoreBg.fillRoundedRect(
+  16,
+  16,
+  92,
+  74,
+  12
+);
 
-    // Render HTML inventory quick slots
-    const uiLayer = document.getElementById('ui-layer');
-    if (uiLayer) {
-      uiLayer.classList.remove('hidden');
-      uiLayer.innerHTML = `
-        <div id="game-inventory-slots" style="
-          position: absolute;
-          bottom: 20px;
-          right: 20px;
-          display: flex;
-          gap: 12px;
-          pointer-events: auto;
-          z-index: 100;
-        ">
-          <div id="slot-1" class="inv-slot">
-            <span class="slot-key">Q / 1</span>
-            <div class="slot-icon">ว่าง</div>
-          </div>
-          <div id="slot-2" class="inv-slot">
-            <span class="slot-key">E / 2</span>
-            <div class="slot-icon">ว่าง</div>
-          </div>
-        </div>
-      `;
 
-      // Bind click listeners for mobile tapping
-      document.getElementById('slot-1')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.useItem(0);
-      });
-      document.getElementById('slot-2')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.useItem(1);
-      });
-    }
+// Border
+scoreBg.lineStyle(1.5, 0x90caf9, 0.8);
+scoreBg.strokeRoundedRect(
+  12,
+  12,
+  100,
+  82,
+  16
+);
+
+scoreBg.setScrollFactor(0);
+scoreBg.setDepth(198);
+
+
+// Score text
+this.scoreText = this.add.text(
+  24,
+  27,
+  `${nickname}\nSCORE: 0\nBEST: ${this.scoreManager.getBestScore()}`,
+  {
+    fontFamily: this.GAME_FONT,
+fontSize: '12px',
+fontStyle: 'bold',
+    color: '#1a3a5c',
+    lineSpacing: 3
   }
+)
+  .setOrigin(0, 0)
+  .setScrollFactor(0)
+  .setDepth(200);
+
+  // ─────────────────────────────────────────────
+  // DIFFICULTY CARD
+  // ─────────────────────────────────────────────
+  const difficultyBg = this.add.graphics();
+
+  difficultyBg.fillStyle(0xffffff, 0.94);
+  difficultyBg.fillRoundedRect(
+    this.cameras.main.width - 82,
+    12,
+    70,
+    34,
+    12
+  );
+
+  difficultyBg.lineStyle(1.5, 0xa5d6a7, 0.9);
+  difficultyBg.strokeRoundedRect(
+    this.cameras.main.width - 82,
+    12,
+    70,
+    34,
+    12
+  );
+
+  difficultyBg.setScrollFactor(0);
+  difficultyBg.setDepth(198);
+
+  this.difficultyText = this.add.text(
+    this.cameras.main.width - 47,
+    29,
+    'ง่าย',
+    {
+      fontFamily: this.GAME_FONT,
+fontSize: '14px',
+fontStyle: 'bold',
+      color: '#388E3C',
+      align: 'center',
+      padding: { x: 2, y: 2 }
+    }
+  )
+    .setOrigin(0.5)
+    .setScrollFactor(0)
+    .setDepth(200);
+
+
+  // ─────────────────────────────────────────────
+  // COIN CARD
+  // ─────────────────────────────────────────────
+  const coinBg = this.add.graphics();
+
+  coinBg.fillStyle(0xffffff, 0.94);
+  coinBg.fillRoundedRect(
+    this.cameras.main.width - 82,
+    52,
+    70,
+    34,
+    12
+  );
+
+  coinBg.lineStyle(1.5, 0xffd54f, 0.9);
+  coinBg.strokeRoundedRect(
+    this.cameras.main.width - 82,
+    52,
+    70,
+    34,
+    12
+  );
+
+  coinBg.setScrollFactor(0);
+  coinBg.setDepth(198);
+
+  this.coinText = this.add.text(
+    this.cameras.main.width - 47,
+    69,
+    '🪙 0',
+    {
+      fontFamily: this.GAME_FONT,
+fontSize: '14px',
+fontStyle: 'bold',
+      color: '#b8860b',
+      align: 'center',
+      padding: { x: 2, y: 2 }
+    }
+  )
+    .setOrigin(0.5)
+    .setScrollFactor(0)
+    .setDepth(200);
+
+
+  // ─────────────────────────────────────────────
+  // LIVES HUD
+  // ─────────────────────────────────────────────
+  const livesX = this.cameras.main.width / 2;
+  const livesY = 12;
+
+  const livesShadow = this.add.graphics();
+
+  livesShadow.fillStyle(0x1a3a5c, 0.14);
+  livesShadow.fillRoundedRect(
+    livesX - 66,
+    livesY + 4,
+    132,
+    42,
+    18
+  );
+
+  livesShadow.setScrollFactor(0);
+  livesShadow.setDepth(198);
+
+
+  const livesBg = this.add.graphics();
+
+  livesBg.fillStyle(0xffffff, 0.96);
+  livesBg.fillRoundedRect(
+    livesX - 66,
+    livesY,
+    132,
+    42,
+    18
+  );
+
+  livesBg.fillStyle(0xf0f8ff, 0.96);
+  livesBg.fillRoundedRect(
+    livesX - 62,
+    livesY + 4,
+    124,
+    34,
+    14
+  );
+
+  livesBg.lineStyle(2, 0xef5350, 0.9);
+  livesBg.strokeRoundedRect(
+    livesX - 66,
+    livesY,
+    132,
+    42,
+    18
+  );
+
+  livesBg.setScrollFactor(0);
+  livesBg.setDepth(199);
+
+
+  this.livesText = this.add.text(
+    livesX,
+    livesY + 21,
+    '❤️ ❤️ ❤️',
+    {
+      fontFamily: this.GAME_FONT,
+fontSize: '18px',
+fontStyle: 'bold',
+      color: '#d32f2f',
+      align: 'center',
+      padding: { x: 4, y: 2 }
+    }
+  )
+    .setOrigin(0.5)
+    .setScrollFactor(0)
+    .setDepth(200);
+
+  this.updateLivesUI();
+
+
+  // ─────────────────────────────────────────────
+  // HTML INVENTORY
+  // ─────────────────────────────────────────────
+  const uiLayer = document.getElementById('ui-layer');
+
+  if (uiLayer) {
+    uiLayer.classList.remove('hidden');
+
+    uiLayer.innerHTML = `
+      <div id="game-inventory-slots" style="
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 12px;
+        pointer-events: auto;
+        z-index: 100;
+      ">
+      <div id="slot-1" class="inv-slot">
+  <div class="slot-name"></div>
+  <div class="slot-icon">ว่าง</div>
+  <span class="slot-key">Q / 1</span>
+</div>
+
+<div id="slot-2" class="inv-slot">
+  <div class="slot-name"></div>
+  <div class="slot-icon">ว่าง</div>
+  <span class="slot-key">E / 2</span>
+</div>
+      </div>
+    `;
+
+    document.getElementById('slot-1')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.useItem(0);
+    });
+
+    document.getElementById('slot-2')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.useItem(1);
+    });
+  }
+}
 
   private updateScoreUI(): void {
     const nickname = this.registry.get('nickname') || 'PLAYER';
@@ -652,7 +913,9 @@ export class GameScene extends Phaser.Scene {
     const bgColor = isStreak ? 'rgba(255,224,178,0.95)' : 'rgba(255,255,255,0.88)';
 
     const popup = this.add.text(this.player.x, this.player.y - 20, label, {
-      font: `bold ${isStreak ? 20 : 18}px Nunito, Mitr, sans-serif`,
+      fontFamily: this.GAME_FONT,
+fontSize: `${isStreak ? 20 : 18}px`,
+fontStyle: 'bold',
       color,
       backgroundColor: bgColor,
       padding: { x: 6, y: 3 }
@@ -671,7 +934,9 @@ export class GameScene extends Phaser.Scene {
   private _triggerDeductScorePopup(penalty: number): void {
     if (penalty <= 0) return;
     const popup = this.add.text(this.player.x, this.player.y - 20, `💥 -${penalty}`, {
-      font: 'bold 18px Nunito, Mitr, sans-serif',
+      fontFamily: this.GAME_FONT,
+fontSize: '18px',
+fontStyle: 'bold',
       color: '#d32f2f',
       backgroundColor: 'rgba(255,235,235,0.95)',
       padding: { x: 6, y: 3 }
@@ -689,7 +954,9 @@ export class GameScene extends Phaser.Scene {
 
   private _triggerCoinPopup(pts: number): void {
     const popup = this.add.text(this.player.x + 20, this.player.y - 15, `🪙 +${pts}`, {
-      font: 'bold 15px Nunito, Mitr, sans-serif',
+      fontFamily: this.GAME_FONT,
+fontSize: '15px',
+fontStyle: 'bold',
       color: '#b8860b',
       backgroundColor: 'rgba(255,253,231,0.95)',
       padding: { x: 5, y: 2 }
@@ -707,7 +974,9 @@ export class GameScene extends Phaser.Scene {
 
   private _triggerStunPopup(): void {
     const popup = this.add.text(this.player.x, this.player.y - 25, 'มึนงง! (STUNNED)', {
-      font: 'bold 13px Mitr, Nunito, sans-serif',
+      fontFamily: this.GAME_FONT,
+fontSize: '13px',
+fontStyle: 'bold',
       color: '#7b1fa2',
       backgroundColor: 'rgba(243,229,245,0.95)',
       padding: { x: 6, y: 3 }
@@ -741,7 +1010,9 @@ export class GameScene extends Phaser.Scene {
     const streakN = this.scoreManager.getStreakCount();
     if (!this.streakText) {
       this.streakText = this.add.text(12, 48, '', {
-        font: 'bold 12px Nunito, Mitr, sans-serif',
+        fontFamily: this.GAME_FONT,
+fontSize: '12px',
+fontStyle: 'bold',
         color: '#e65100',
         backgroundColor: 'rgba(255,224,178,0.92)',
         padding: { x: 8, y: 5 }
@@ -790,7 +1061,7 @@ export class GameScene extends Phaser.Scene {
     this.countdownText.setColor(color);
 
     // For GO! use slightly smaller font to fit nicely (5x original size)
-    this.countdownText.setFontSize(isGo ? 700 : 1100);
+    this.countdownText.setFontSize(isGo ? 120 : 180);
     this.countdownText.setAlpha(1);
 
     // Punch-in: start big, slam to normal size, then fade out
@@ -1135,16 +1406,140 @@ export class GameScene extends Phaser.Scene {
     }).join('');
   }
 
+  private showThemeTransition(theme: GameTheme): void {
+  const themeNames: Record<GameTheme, string> = {
+    garden: '🌳 พื้นที่สีเขียว',
+    forest: '🌲 ป่า',
+    autumn: '🍂 ฤดูใบไม้ร่วง',
+    city: '🏙️ เมือง',
+    desert: '🏜️ ทะเลทราย',
+    snow: '❄️ ดินแดนหิมะ'
+  };
+
+  const label = themeNames[theme];
+
+  const overlay = this.add.rectangle(
+    this.cameras.main.width / 2,
+    this.cameras.main.scrollY + this.cameras.main.height / 2,
+    this.cameras.main.width,
+    this.cameras.main.height,
+    theme === 'desert'
+      ? 0xf4a261
+      : 0x90caf9,
+    0.18
+  )
+    .setScrollFactor(0)
+    .setDepth(1000);
+
+  const text = this.add.text(
+    this.cameras.main.width / 2,
+    this.cameras.main.scrollY + this.cameras.main.height / 2,
+    label,
+    {
+      fontFamily: this.GAME_FONT,
+fontSize: '30px',
+fontStyle: 'bold',
+      color: '#ffffff',
+      stroke: '#1a3a5c',
+      strokeThickness: 6,
+      align: 'center'
+    }
+  )
+    .setOrigin(0.5)
+    .setScrollFactor(0)
+    .setDepth(1001)
+    .setScale(0.5)
+    .setAlpha(0);
+
+  this.tweens.add({
+    targets: [overlay, text],
+    alpha: 1,
+    duration: 300,
+    ease: 'Power2'
+  });
+
+  this.tweens.add({
+    targets: text,
+    scale: 1,
+    duration: 450,
+    ease: 'Back.easeOut'
+  });
+
+  this.time.delayedCall(1200, () => {
+    this.tweens.add({
+      targets: [overlay, text],
+      alpha: 0,
+      duration: 400,
+      onComplete: () => {
+        overlay.destroy();
+        text.destroy();
+      }
+    });
+  });
+}
+
+  private updateThemeByShopCount(): void {
+  let newTheme: GameTheme = 'garden';
+
+  // ร้านที่ 1-5
+  if (this.shopsPassed <= 5) {
+    newTheme = 'garden';
+  }
+
+  // ร้านที่ 6-10
+  else if (this.shopsPassed <= 10) {
+    newTheme = 'desert';
+  }
+
+  // ร้านที่ 11 เป็นต้นไป
+  else {
+    newTheme = 'snow';
+  }
+
+  if (newTheme === this.currentTheme) {
+    return;
+  }
+
+  const previousTheme = this.currentTheme;
+  this.currentTheme = newTheme;
+
+  console.log(
+    `🌍 THEME CHANGE: ${previousTheme} → ${newTheme}`
+  );
+
+  this.showThemeTransition(newTheme);
+}
   // ─── Shop & Item Implementation ───────────────────────────────────────────
 
   private checkShopTrigger(gridX: number, gridY: number): void {
-    if (this.isShopOpen) return;
-    const lane = this.lanes.get(gridY);
-    // Trigger if player is on the shop lane and within 1 cell of the shop's column
-    if (lane && lane.hasShop && lane.shopCol !== null && Math.abs(gridX - lane.shopCol) <= 1) {
-      this.openShop();
+  if (this.isShopOpen) return;
+
+  const lane = this.lanes.get(gridY);
+
+  if (
+    lane &&
+    lane.hasShop &&
+    lane.shopCol !== null &&
+    Math.abs(gridX - lane.shopCol) <= 1
+  ) {
+    // ป้องกันนับร้านเดิมซ้ำ
+    if (!this.passedShopRows.has(gridY)) {
+      this.passedShopRows.add(gridY);
+
+      this.shopsPassed++;
+
+      this.updateThemeByShopCount();
+
+      console.log(
+        `🛒 ผ่านร้านค้า ${this.shopsPassed} ร้าน | Theme: ${this.currentTheme}`
+      );
     }
+
+    this.openShop();
   }
+}
+
+
 
   private openShop(): void {
     if (this.isGameOver || this.isCountdown) return;
@@ -1171,55 +1566,173 @@ export class GameScene extends Phaser.Scene {
     shopModal.style.maxWidth = '440px';
     shopModal.style.width = '95%';
     shopModal.style.padding = '1.8rem 1.5rem';
-
-    const items = [
-      { id: 'shield', name: '🛡️ โล่บาเรีย', price: 1, desc: 'กันการชนหรือจมน้ำ 1 ครั้ง' },
-      { id: 'freezewater', name: '❄️ แช่แข็งแม่น้ำ', price: 1, desc: 'เปลี่ยนแม่น้ำเป็นน้ำแข็ง เดินข้ามได้เลย 6 วินาที' },
-      { id: 'teleport', name: '⚡ วาร์ปข้ามเลน', price: 1, desc: 'พุ่งตัวข้ามไปข้างหน้า 3 เลนทันที หลบรถหรือข้ามแม่น้ำได้' },
-      { id: 'midas', name: '💰 เหรียญนำโชค', price: 1, desc: 'รถที่ชนเราจะกลายเป็นเหรียญทอง 5 วินาที' },
-      { id: 'shoes', name: '👟 รองเท้าสปริง', price: 1, desc: 'เดินเร็วขึ้น 50% นาน 6 วินาที' },
-      { id: 'timestop', name: '⏱️ หยุดเวลา', price: 1, desc: 'หยุดขบวนรถยนต์ทั้งหมด 5 วินาที' },
-      { id: 'timeslow', name: '⏳ ชะลอเวลา', price: 1, desc: 'ชะลอรถลงเหลือ 30% นาน 6 วินาที' },
-      { id: 'score2x', name: '🔥 คะแนน x2', price: 1, desc: 'คูณคะแนน 2 เท่า นาน 10 วินาที' },
-      { id: 'cape', name: '🦸 ผ้าคลุมบินได้', price: 1, desc: 'บินผ่านรถ/ลอยเหนือน้ำอิสระ 5 วินาที' },
-      { id: 'blast', name: '💥 ระเบิดพลัง', price: 1, desc: 'ระเบิดเคลียร์รถรอบตัว 2 เลน' }
-    ];
+const items = [
+  {
+    id: 'shield',
+    name: 'โล่บาเรีย',
+    img: '/assets/items/shield.png',
+    price: 1,
+    desc: 'กันการชนหรือจมน้ำ 1 ครั้ง'
+  },
+  {
+    id: 'freezewater',
+    name: 'แช่แข็งแม่น้ำ',
+    img: '/assets/items/freezewater.png',
+    price: 1,
+    desc: 'เปลี่ยนแม่น้ำเป็นน้ำแข็ง เดินข้ามได้เลย 6 วินาที'
+  },
+  {
+    id: 'teleport',
+    name: 'วาร์ปข้ามเลน',
+    img: '/assets/items/teleport.png',
+    price: 1,
+    desc: 'พุ่งตัวข้ามไปข้างหน้า 3 เลนทันที หลบรถหรือข้ามแม่น้ำได้'
+  },
+  {
+    id: 'midas',
+    name: 'เหรียญนำโชค',
+    img: '/assets/items/midas.png',
+    price: 1,
+    desc: 'รถที่ชนเราจะกลายเป็นเหรียญทอง 5 วินาที'
+  },
+  {
+    id: 'shoes',
+    name: 'รองเท้าสปริง',
+    img: '/assets/items/shoes.png',
+    price: 1,
+    desc: 'เดินเร็วขึ้น 50% นาน 6 วินาที'
+  },
+  {
+    id: 'timestop',
+    name: 'หยุดเวลา',
+    img: '/assets/items/timestop.png',
+    price: 1,
+    desc: 'หยุดขบวนรถยนต์ทั้งหมด 5 วินาที'
+  },
+  {
+    id: 'timeslow',
+    name: 'ชะลอเวลา',
+    img: '/assets/items/timeslow.png',
+    price: 1,
+    desc: 'ชะลอรถลงเหลือ 30% นาน 6 วินาที'
+  },
+  {
+    id: 'score2x',
+    name: 'คะแนน x2',
+    img: '/assets/items/score2x.png',
+    price: 1,
+    desc: 'คูณคะแนน 2 เท่า นาน 10 วินาที'
+  },
+  {
+    id: 'cape',
+    name: 'ผ้าคลุมบินได้',
+    img: '/assets/items/cape.png',
+    price: 1,
+    desc: 'บินผ่านรถ/ลอยเหนือน้ำอิสระ 5 วินาที'
+  },
+  {
+    id: 'blast',
+    name: 'ระเบิดพลัง',
+    img: '/assets/items/blast.png',
+    price: 1,
+    desc: 'ระเบิดเคลียร์รถรอบตัว 2 เลน'
+  }
+];
 
 
     let itemsHtml = '';
-    items.forEach(item => {
-      itemsHtml += `
-        <div class="shop-item" style="
+
+items.forEach(item => {
+  itemsHtml += `
+    <div class="shop-item" style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.72);
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(26,58,92,0.1);
+      text-align: left;
+    ">
+
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      ">
+
+        <!-- รูปไอเทม -->
+        <div style="
+          width: 48px;
+          height: 48px;
+          flex-shrink: 0;
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          background: rgba(255,255,255,0.72);
-          padding: 8px 12px;
-          margin-bottom: 8px;
-          border-radius: 12px;
-          border: 1px solid rgba(26,58,92,0.1);
-          text-align: left;
+          justify-content: center;
+          background: rgba(240,248,255,0.9);
+          border-radius: 10px;
+          border: 1px solid rgba(144,202,249,0.5);
         ">
-          <div>
-            <div style="font-weight: 800; font-size: 0.9rem; color: #1a3a5c;">${item.name}</div>
-            <div style="font-size: 0.72rem; color: #5c8fa8; font-weight: 600;">${item.desc}</div>
-          </div>
-          <button class="buy-btn" data-id="${item.id}" data-price="${item.price}" style="
-            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: 800;
-            cursor: pointer;
-            font-size: 0.82rem;
-            box-shadow: 0 2px 0 #2e7d32;
-            white-space: nowrap;
-            transition: all 0.1s;
-          ">🪙 ${item.price}</button>
+          <img
+            src="${item.img}"
+            alt="${item.name}"
+            style="
+              width: 40px;
+              height: 40px;
+              object-fit: contain;
+              image-rendering: auto;
+            "
+          />
         </div>
-      `;
-    });
+
+        <!-- ชื่อ + รายละเอียด -->
+        <div>
+          <div style="
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: #1a3a5c;
+          ">
+            ${item.name}
+          </div>
+
+          <div style="
+            font-size: 0.72rem;
+            color: #5c8fa8;
+            font-weight: 600;
+          ">
+            ${item.desc}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ปุ่มซื้อ -->
+      <button
+        class="buy-btn"
+        data-id="${item.id}"
+        data-price="${item.price}"
+        style="
+          background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+          border: none;
+          color: white;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-weight: 800;
+          cursor: pointer;
+          font-size: 0.82rem;
+          box-shadow: 0 2px 0 #2e7d32;
+          white-space: nowrap;
+          transition: all 0.1s;
+        "
+      >
+        🪙 ${item.price}
+      </button>
+
+    </div>
+  `;
+});
 
     const currentCoins = this.scoreManager.getCoinCount();
     shopModal.innerHTML = `
@@ -1230,7 +1743,7 @@ export class GameScene extends Phaser.Scene {
       <div class="scrollable-y" style="max-height: 250px; padding-right: 4px; margin-bottom: 12px;">
         ${itemsHtml}
       </div>
-      <button id="close-shop-btn" class="sky-btn" style="background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); box-shadow: 0 4px 0 #b71c1c; margin-top: 0;">❌ ปิดร้านค้า</button>
+      <button id="close-shop-btn" class="sky-btn" style="background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); box-shadow: 0 4px 0 #b71c1c; margin-top: 0;">ปิดร้านค้า</button>
     `;
 
     uiLayer.appendChild(shopModal);
@@ -1316,6 +1829,100 @@ export class GameScene extends Phaser.Scene {
     this.raftManager.timeScale = 1;
   }
 
+  // ─── Active Item Countdown ───────────────────────
+
+private startItemCountdown(itemId: string, durationMs: number): void {
+  // ยกเลิก Countdown เก่าก่อน
+  if (this.activeItemTimer) {
+    this.activeItemTimer.remove(false);
+    this.activeItemTimer = undefined;
+  }
+
+  this.activeItemId = itemId;
+  this.activeItemEndTime = this.time.now + durationMs;
+
+  const itemNames: Record<string, string> = {
+    freezewater: '❄️ แช่แข็งแม่น้ำ',
+    midas: '🪙 เหรียญนำโชค',
+    shoes: '👟 รองเท้าสปริง',
+    timestop: '⏸️ หยุดเวลา',
+    timeslow: '🐌 ชะลอเวลา',
+    score2x: '✖️ คะแนน x2',
+    cape: '🦸 ผ้าคลุมบินได้'
+  };
+
+  this.itemCountdownText.setVisible(true);
+  this.itemCountdownText.setAlpha(1);
+  this.itemCountdownText.setScale(1);
+
+  const updateText = () => {
+  if (!this.itemCountdownText?.active) return;
+
+  const remaining = Math.max(
+    0,
+    this.activeItemEndTime - this.time.now
+  );
+
+  const seconds = Math.ceil(remaining / 1000);
+  const name = itemNames[itemId] || itemId;
+
+  this.itemCountdownText.setText(
+    `${name}\n${seconds}s`
+  );
+if (seconds <= 3) {
+  // 🔴 เหลือ 3 วินาที → ตัวหนังสือแดง
+  this.itemCountdownText.setColor('#ff0000');
+
+  // กระพริบเล็กน้อย
+  this.itemCountdownText.setScale(
+    1 + Math.sin(this.time.now / 80) * 0.06
+  );
+} else {
+  // ⚪ ปกติ
+  this.itemCountdownText.setColor('#ffffff');
+  this.itemCountdownText.setScale(1);
+}
+
+  if (remaining <= 0) {
+    this.stopItemCountdown();
+  }
+};
+
+  updateText();
+
+  this.activeItemTimer = this.time.addEvent({
+    delay: 100,
+    loop: true,
+    callback: updateText
+  });
+}
+
+private stopItemCountdown(): void {
+  if (this.activeItemTimer) {
+    this.activeItemTimer.remove(false);
+    this.activeItemTimer = undefined;
+  }
+
+  this.activeItemId = null;
+  this.activeItemEndTime = 0;
+
+  if (this.itemCountdownText?.active) {
+    this.tweens.add({
+      targets: this.itemCountdownText,
+      alpha: 0,
+      scale: 0.7,
+      duration: 180,
+      onComplete: () => {
+        if (this.itemCountdownText?.active) {
+          this.itemCountdownText.setVisible(false);
+          this.itemCountdownText.setAlpha(1);
+          this.itemCountdownText.setScale(1);
+        }
+      }
+    });
+  }
+}
+
   private useItem(slotIdx: number): void {
     const itemId = this.inventory[slotIdx];
     if (!itemId) return;
@@ -1335,6 +1942,7 @@ export class GameScene extends Phaser.Scene {
 
       case 'freezewater':
         this.isRiverFrozen = true;
+        this.startItemCountdown('freezewater', 6000);
         // Call setFrozen on all river lanes
         this.lanes.forEach(lane => {
           if (lane.type === 'river') {
@@ -1400,6 +2008,7 @@ export class GameScene extends Phaser.Scene {
 
       case 'midas':
         this.isMidasActive = true;
+        this.startItemCountdown('midas', 5000);
         // Add a golden particle/tint/glow effect on player
         this.player.setTint(0xffd700); // gold tint
         this.time.delayedCall(5000, () => {
@@ -1411,6 +2020,7 @@ export class GameScene extends Phaser.Scene {
 
       case 'shoes':
         this.player.setSpeedBoostActive(true);
+        this.startItemCountdown('shoes', 6000);
         this.time.delayedCall(6000, () => {
           this.player.setSpeedBoostActive(false);
         });
@@ -1419,6 +2029,9 @@ export class GameScene extends Phaser.Scene {
       case 'timestop':
         this.trafficManager.timeScale = 0;
         this.raftManager.timeScale = 0;
+
+        this.startItemCountdown('timestop', 5000);
+
         this.cameras.main.flash(200, 255, 255, 255);
         this.time.delayedCall(5000, () => {
           this.trafficManager.timeScale = 1;
@@ -1429,6 +2042,9 @@ export class GameScene extends Phaser.Scene {
       case 'timeslow':
         this.trafficManager.timeScale = 0.3;
         this.raftManager.timeScale = 0.3;
+
+        this.startItemCountdown('timeslow', 6000);
+
         this.cameras.main.flash(200, 255, 255, 255);
         this.time.delayedCall(6000, () => {
           this.trafficManager.timeScale = 1;
@@ -1439,6 +2055,7 @@ export class GameScene extends Phaser.Scene {
       case 'score2x':
         this.scoreManager.setScoreMultiplier(2);
         this.scoreText.setColor('#e65100'); // Orange highlight
+        this.startItemCountdown('score2x', 10000);
         this.time.delayedCall(10000, () => {
           this.scoreManager.setScoreMultiplier(1);
           this.scoreText.setColor('#1a3a5c');
@@ -1447,6 +2064,7 @@ export class GameScene extends Phaser.Scene {
 
       case 'cape':
         this.player.setIsFlying(true);
+        this.startItemCountdown('cape', 5000);
         this.time.delayedCall(5000, () => {
           this.player.setIsFlying(false);
           this.collisionManager.reset();
@@ -1472,29 +2090,111 @@ export class GameScene extends Phaser.Scene {
         break;
     }
   }
+private updateInventoryUI(): void {
+  const slotImages: Record<string, string> = {
+    shield: '/assets/items/shield.png',
+    freezewater: '/assets/items/freezewater.png',
+    teleport: '/assets/items/teleport.png',
+    midas: '/assets/items/midas.png',
+    shoes: '/assets/items/shoes.png',
+    timestop: '/assets/items/timestop.png',
+    timeslow: '/assets/items/timeslow.png',
+    score2x: '/assets/items/score2x.png',
+    cape: '/assets/items/cape.png',
+    blast: '/assets/items/blast.png'
+  };
 
-  private updateInventoryUI(): void {
-    const slotEmojis: Record<string, string> = {
-      shield: '🛡️',
-      freezewater: '❄️',
-      teleport: '⚡',
-      midas: '💰',
-      shoes: '👟',
-      timestop: '⏱️',
-      timeslow: '⏳',
-      score2x: '🔥',
-      cape: '🦸',
-      blast: '💥'
-    };
+  const itemNames: Record<string, string> = {
+    shield: 'โล่บาเรีย',
+    freezewater: 'แช่แข็งแม่น้ำ',
+    teleport: 'วาร์ปข้ามเลน',
+    midas: 'เหรียญนำโชค',
+    shoes: 'รองเท้าสปริง',
+    timestop: 'หยุดเวลา',
+    timeslow: 'ชะลอเวลา',
+    score2x: 'คะแนน x2',
+    cape: 'ผ้าคลุมบินได้',
+    blast: 'ระเบิดพลัง'
+  };
 
+  for (let i = 0; i < 2; i++) {
+    const slot = document.querySelector(`#slot-${i + 1}`);
+    const el = document.querySelector(`#slot-${i + 1} .slot-icon`);
+    const nameEl = document.querySelector(`#slot-${i + 1} .slot-name`);
 
-    for (let i = 0; i < 2; i++) {
-      const el = document.querySelector(`#slot-${i + 1} .slot-icon`);
-      if (el) {
-        const itemId = this.inventory[i];
-        el.textContent = itemId ? slotEmojis[itemId] || '❓' : 'ว่าง';
-        el.setAttribute('style', itemId ? 'color: #1a3a5c;' : 'color: #90a4ae;');
-      }
+    if (!el || !nameEl || !slot) continue;
+
+    const itemId = this.inventory[i];
+
+    if (itemId && slotImages[itemId]) {
+
+      // ชื่อไอเทมด้านบนกรอบ
+      nameEl.textContent = itemNames[itemId] || itemId;
+
+      nameEl.setAttribute(
+        'style',
+        `
+          display: block;
+          color: #1a3a5c;
+          font-size: 13px;
+          font-weight: 800;
+          text-align: center;
+          margin-bottom: 5px;
+          white-space: nowrap;
+          text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+        `
+      );
+
+      // รูปไอเทม
+      el.innerHTML = `
+        <img
+          src="${slotImages[itemId]}"
+          alt="${itemNames[itemId] || itemId}"
+          style="
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            display: block;
+          "
+        />
+      `;
+
+      el.setAttribute(
+        'style',
+        `
+          color: #1a3a5c;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        `
+      );
+
+    } else {
+
+      // ไม่มีไอเทม → ลบชื่อออก
+      nameEl.textContent = '';
+
+      nameEl.setAttribute(
+        'style',
+        `
+          display: block;
+          height: 18px;
+          margin-bottom: 5px;
+        `
+      );
+
+      el.textContent = 'ว่าง';
+
+      el.setAttribute(
+        'style',
+        `
+          color: #90a4ae;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        `
+      );
     }
   }
+}
 }

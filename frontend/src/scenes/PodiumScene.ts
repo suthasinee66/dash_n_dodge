@@ -32,14 +32,21 @@ export class PodiumScene extends Phaser.Scene {
     uiLayer.classList.remove('hidden');
 
     const skinsList: Record<string, string> = {
-      man: '/assets/characters/man.png',
-      woman: '/assets/characters/woman.png',
-      female_adventurer: '/assets/characters/female_adventurer.png',
-      female_person: '/assets/characters/female_person.png',
-      male_adventurer: '/assets/characters/male_adventurer.png',
-      male_person: '/assets/characters/male_person.png',
-      robot: '/assets/characters/robot.png',
-      zombie: '/assets/characters/zombie.png'
+      sea_urchin: '/assets/characters/sea_urchin.png',
+      shark: '/assets/characters/shark.png',
+      squid: '/assets/characters/squid.png',
+      TRex: '/assets/characters/TRex.png',
+      triceratops: '/assets/characters/triceratops.png',
+      turtle: '/assets/characters/turtle.png',
+      lionfish: '/assets/characters/lionfish.png',
+      elephant: '/assets/characters/elephant.png',
+      dolphin: '/assets/characters/dolphin.png',
+      dog: '/assets/characters/dog.png',
+      doctor_stringray: '/assets/characters/doctor_stringray.png',
+      brachiosaurus: '/assets/characters/brachiosaurus.png',
+      baby_stringray: '/assets/characters/baby_stringray.png',
+      baby_dolphin: '/assets/characters/baby_dolphin.png',
+      
     };
 
     // Get top 3
@@ -187,7 +194,7 @@ export class PodiumScene extends Phaser.Scene {
 
         ${othersHtml}
 
-        <button id="podium-menu-btn" class="sky-btn green" style="font-size: 1.1rem; padding: 12px 20px;">🏠 กลับหน้าหลัก (Main Menu)</button>
+        <button id="podium-menu-btn" class="sky-btn green" style="font-size: 1.1rem; padding: 12px 20px;">🏠 กลับหน้าหลัก</button>
       </div>
     `;
 

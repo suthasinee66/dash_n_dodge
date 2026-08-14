@@ -4,8 +4,6 @@
    ============================================ */
 
 /* Google Fonts are loaded via index.html */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
-
 /* Global Reset */
 * {
   box-sizing: border-box;
@@ -15,15 +13,13 @@
   -webkit-user-select: none;
   touch-action: none;
 }
-
 body,
 html {
   width: 100%;
   height: 100%;
   overflow: hidden;
   background-color: #87CEEB;
-  /* Sky Blue */
-  font-family: 'Nunito', 'Mitr', sans-serif;
+  font-family: 'Noto Sans Thai', 'Nunito', sans-serif;
   color: #1a3a5c;
 }
 
@@ -120,7 +116,7 @@ html {
   width: 100%;
   padding: 0.9rem 1rem;
   margin-top: 0.85rem;
-  font-family: 'Nunito', 'Mitr', sans-serif;
+  font-family: 'Noto Sans Thai', 'Nunito', sans-serif;
   font-size: 1rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -333,55 +329,137 @@ html {
     object-fit: contain;
   }
 }
-
 /* ============================================
    Inventory Slots & Shop Custom Styles
    ============================================ */
+
 .inv-slot {
-  width: 58px;
-  height: 58px;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 3px solid rgba(26, 58, 92, 0.22);
-  border-radius: 14px;
+  width: 78px;
+  min-height: 92px;
   position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(26, 58, 92, 0.12);
   transition: all 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* สำคัญ: ไม่ให้กรอบกินพื้นที่ชื่อ */
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .inv-slot:hover {
   transform: translateY(-3px) scale(1.04);
-  border-color: #1565c0;
 }
 
 .inv-slot:active {
   transform: translateY(1px) scale(0.96);
 }
 
-.slot-key {
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+/* ชื่อไอเทม — อยู่นอกกรอบ ด้านบน */
+.slot-name {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(
+    135deg,
+    #d6dce0 0%,
+    #cbd2db 100%
+  );
+
   color: #fff;
-  font-size: 9px;
+
+  font-size: 10px;
   font-weight: 900;
-  padding: 1px 6px;
+  line-height: 1;
+
+  padding: 4px 8px;
+
   border-radius: 8px;
+
   white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(21, 101, 192, 0.25);
+  text-align: center;
+
+  margin-bottom: 5px;
+
+  box-shadow:
+    0 2px 4px rgba(21, 101, 192, 0.25);
+
+  z-index: 5;
+
+  min-width: 40px;
+  max-width: 78px;
 }
 
+/* กรอบไอเทม */
 .slot-icon {
+  width: 58px;
+  height: 58px;
+
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  border: 3px solid rgba(26, 58, 92, 0.22);
+  border-radius: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   font-size: 20px;
   font-weight: 900;
   color: #90a4ae;
+
+  box-shadow:
+    0 8px 20px rgba(26, 58, 92, 0.12);
+
+  position: relative;
+}
+
+/* เอฟเฟกต์ตอนเอาเมาส์วางบนช่อง */
+.inv-slot:hover .slot-icon {
+  border-color: #1565c0;
+  box-shadow:
+    0 8px 20px rgba(26, 58, 92, 0.16),
+    0 0 0 2px rgba(33, 150, 243, 0.12);
+}
+
+/* ปุ่ม Q / 1 และ E / 2 */
+.slot-key {
+  position: absolute;
+
+  bottom: -8px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  background: linear-gradient(
+    135deg,
+    #2196F3 0%,
+    #1565C0 100%
+  );
+
+  color: #fff;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  padding: 2px 6px;
+
+  border-radius: 8px;
+
+  white-space: nowrap;
+
+  box-shadow:
+    0 2px 4px rgba(21, 101, 192, 0.25);
+
+  z-index: 5;
 }
 
 .buy-btn:hover {

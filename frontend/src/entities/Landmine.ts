@@ -15,6 +15,7 @@ export class Landmine extends Phaser.GameObjects.Container {
   private blinkingLight!: Phaser.GameObjects.Graphics;
   private countdownText!: Phaser.GameObjects.Text;
   private blinkEvent?: Phaser.Time.TimerEvent;
+  private dangerZone!: Phaser.GameObjects.Graphics;
 
   constructor(scene: Phaser.Scene, gridX: number, gridY: number) {
     const px = gridX * 40 + 20;
@@ -53,13 +54,25 @@ export class Landmine extends Phaser.GameObjects.Container {
 
     // 3. Mini countdown timer text overlay
     this.countdownText = this.scene.add.text(0, -22, '2.0', {
-      font: 'bold 11px Nunito, Mitr, sans-serif',
-      color: '#ff1744',
-      backgroundColor: 'rgba(0, 0, 0, 0.65)',
-      padding: { x: 3, y: 1 }
-    }).setOrigin(0.5).setVisible(false);
+  font: 'bold 11px Nunito, Mitr, sans-serif',
+  color: '#ff1744',
+  backgroundColor: 'rgba(0, 0, 0, 0.65)',
+  padding: { x: 3, y: 1 }
+}).setOrigin(0.5).setVisible(false);
 
-    this.add([this.mineBody, this.blinkingLight, this.countdownText]);
+// 🔴 พื้นที่อันตราย 3x3 ช่อง
+this.dangerZone = this.scene.add.graphics();
+this.dangerZone.fillStyle(0xff1744, 0.22);
+this.dangerZone.fillRect(-60, -90, 120, 180);
+this.dangerZone.setAlpha(0);
+this.dangerZone.setDepth(-1);
+
+this.add([
+  this.dangerZone,
+  this.mineBody,
+  this.blinkingLight,
+  this.countdownText
+]);
   }
 
   // ─── Trigger & Countdown ───────────────────────────────────────────────────
@@ -79,12 +92,19 @@ export class Landmine extends Phaser.GameObjects.Container {
     const duration = 2000; // 2 seconds countdown
 
     const triggerBlink = () => {
-      if (this.isExploded) return;
+  if (this.isExploded) return;
 
-      // Toggle LED alpha
-      this.blinkingLight.setAlpha(this.blinkingLight.alpha === 1 ? 0.2 : 1);
+  // 🔴 กะพริบพื้นที่ระเบิด 3x3
+  this.dangerZone.setAlpha(
+    this.dangerZone.alpha > 0 ? 0 : 0.28
+  );
 
-      elapsed += blinkDelay;
+  // 🔴 กะพริบไฟบนกับระเบิด
+  this.blinkingLight.setAlpha(
+    this.blinkingLight.alpha === 1 ? 0.2 : 1
+  );
+
+  elapsed += blinkDelay;
 
       // Update countdown text
       const remaining = Math.max(0, (duration - elapsed) / 1000);
@@ -113,8 +133,10 @@ export class Landmine extends Phaser.GameObjects.Container {
     this.isExploded = true;
 
     if (this.blinkEvent) {
-      this.blinkEvent.destroy();
-    }
+  this.blinkEvent.destroy();
+}
+
+this.dangerZone?.destroy();
 
     // Call manager callback to apply damage, screen shake, etc.
     onExplodeCallback();

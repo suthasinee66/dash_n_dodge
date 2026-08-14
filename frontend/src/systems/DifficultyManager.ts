@@ -51,13 +51,13 @@ export class DifficultyManager {
   public static getThaiLabel(tier: DifficultyTier): string {
     switch (tier) {
       case 'easy':
-        return 'ง่าย (EASY)';
+        return 'ง่าย';
       case 'normal':
-        return 'ปานกลาง (NORMAL)';
+        return 'ปานกลาง';
       case 'hard':
-        return 'ยาก (HARD)';
+        return 'ยาก';
       case 'extreme':
-        return 'ท้าทายขีดจำกัด (EXTREME)';
+        return 'ท้าทายขีดจำกัด';
     }
   }
 }

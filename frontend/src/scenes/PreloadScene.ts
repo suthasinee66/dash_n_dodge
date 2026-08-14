@@ -15,23 +15,43 @@ export class PreloadScene extends Phaser.Scene {
       text: 'LOADING NETWORK...',
       style: {
         font: 'bold 20px Outfit, Mitr, sans-serif',
-        color: '#1565C0'
+        color: '#ffffff'
       }
     });
     loadingText.setOrigin(0.5, 0.5);
 
     const progressBox = this.add.graphics();
     progressBox.fillStyle(0xe3f2fd, 0.8);
-    progressBox.fillRect(width / 2 - 160, height / 2 - 15, 320, 30);
-    progressBox.lineStyle(2, 0x90a4ae, 0.6);
-    progressBox.strokeRect(width / 2 - 160, height / 2 - 15, 320, 30);
+    progressBox.fillRoundedRect(
+  width / 2 - 160,
+  height / 2 - 15,
+  320,
+  30,
+  15
+);
+
+progressBox.lineStyle(2, 0x90a4ae, 0.6);
+
+progressBox.strokeRoundedRect(
+  width / 2 - 160,
+  height / 2 - 15,
+  320,
+  30,
+  15
+);
 
     const progressBar = this.add.graphics();
 
     this.load.on('progress', (value: number) => {
       progressBar.clear();
       progressBar.fillStyle(0x1565C0, 1);
-      progressBar.fillRect(width / 2 - 155, height / 2 - 10, 310 * value, 20);
+      progressBar.fillRoundedRect(
+  width / 2 - 155,
+  height / 2 - 10,
+  310 * value,
+  20,
+  10
+);
     });
 
     this.load.on('complete', () => {
@@ -52,17 +72,42 @@ export class PreloadScene extends Phaser.Scene {
     }
 
     // Load theme trees
-    const trees = ['tree', 'treeDead', 'treeFrozen', 'treeOrange', 'treePine', 'treePalm'];
-    trees.forEach(t => {
-      this.load.image(t, `/assets/backgrounds/${t}.png`);
-    });
+    const trees = [
+  'tree',
+  'treeDead',
+  'treeFrozen',
+  'treeOrange',
+  'treePine',
+  'treePalm'
+];
+
+trees.forEach(t => {
+  this.load.image(t, `/assets/backgrounds/${t}.png`);
+});
+
+// Load desert cactus
+const cactuses = [
+  'cactus1',
+  'cactus2',
+  'cactus3',
+  'cactus4',
+  'cactus5'
+];
+
+cactuses.forEach(cactus => {
+  this.load.image(
+    cactus,
+    `/assets/backgrounds/${cactus}.png`
+  );
+});
 
     // 2. Load Player skin textures (including toon characters)
     const skins = [
-      'man', 'woman',
-      'female_adventurer', 'female_person',
-      'male_adventurer', 'male_person',
-      'robot', 'zombie'
+      'sea_urchin', 'shark', 'squid',
+      'TRex', 'triceratops', 'turtle',
+      'lionfish', 'elephant', 'dolphin',
+      'dog', 'doctor_stringray', 'brachiosaurus',
+      'baby_stringray', 'baby_dolphin'
     ];
     skins.forEach(s => {
       this.load.image(s, `/assets/characters/${s}.png`);
