@@ -63,10 +63,8 @@ export class GameScene extends Phaser.Scene {
 
   // Active item countdown
   private itemCountdownText!: Phaser.GameObjects.Text;
-  private itemCountdownBg!: Phaser.GameObjects.Graphics;
   private activeItemTimer?: Phaser.Time.TimerEvent;
   private activeItemEndTime: number = 0;
-  private activeItemId: string | null = null;
 
   // ─── Theme progression ─────────────────────────────
 private shopsPassed: number = 0;
