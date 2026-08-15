@@ -1694,17 +1694,17 @@ fontStyle: 'bold',
   private updateThemeByShopCount(): void {
   let newTheme: GameTheme = 'garden';
 
-  // ร้านที่ 1-5
-  if (this.shopsPassed <= 5) {
+  // ร้านที่ 1-3
+  if (this.shopsPassed <= 3) {
     newTheme = 'garden';
   }
 
-  // ร้านที่ 6-10
-  else if (this.shopsPassed <= 10) {
+  // ร้านที่ 4-6
+  else if (this.shopsPassed <= 6) {
     newTheme = 'desert';
   }
 
-  // ร้านที่ 11 เป็นต้นไป
+  // ร้านที่ 7 เป็นต้นไป
   else {
     newTheme = 'snow';
   }
