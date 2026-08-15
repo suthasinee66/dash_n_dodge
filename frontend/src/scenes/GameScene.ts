@@ -407,9 +407,33 @@ if (this.itemCountdownText?.active && this.itemCountdownText.visible) {
       const medianPairIndex = Math.floor(progress / 7); // 2, 3, 4...
       hasShop = isTopLane && medianPairIndex % 2 === 0; // Every 2nd median pair
     }
+const direction = gridY % 2 === 0 ? 'left' : 'right';
 
-    const direction = gridY % 2 === 0 ? 'left' : 'right';
-    const speed = 60 + Math.min(120, Math.abs(gridY) * 2.5);
+// ─── คุมความเร็วรถตามระดับความยาก ─────────────────
+const diffConfig = DifficultyManager.getConfig(this.scoreManager.getScore());
+
+let speed = 70;
+
+switch (diffConfig.tier) {
+  case 'easy':
+    speed = 65;
+    break;
+
+  case 'normal':
+    speed = 70;
+    break;
+
+  case 'hard':
+    speed = 80;
+    break;
+
+  case 'extreme':
+    speed = 85;
+    break;
+}
+
+speed += Math.min(15, Math.abs(gridY) * 0.5);
+speed = Math.min(speed, 110);
 
     const config: LaneConfig = {
   gridY,
@@ -906,31 +930,67 @@ fontStyle: 'bold',
   }
 
   // ─── Popups & Particle Effects ─────────────────────────────────────────────
+private _triggerScorePopup(pts: number): void {
+  const isStreak = this.scoreManager.isStreakActive();
 
-  private _triggerScorePopup(pts: number): void {
-    const isStreak = this.scoreManager.isStreakActive();
-    const label = isStreak ? `🔥 +${pts}` : `+${pts}`;
-    const color = isStreak ? '#e65100' : '#1565C0';
-    const bgColor = isStreak ? 'rgba(255,224,178,0.95)' : 'rgba(255,255,255,0.88)';
+  const label = isStreak
+    ? `🔥 +${pts}`
+    : `+${pts}`;
 
-    const popup = this.add.text(this.player.x, this.player.y - 20, label, {
+  const popup = this.add.text(
+    this.player.x,
+    this.player.y - 28,
+    label,
+    {
       fontFamily: this.GAME_FONT,
-fontSize: `${isStreak ? 20 : 18}px`,
-fontStyle: 'bold',
-      color,
-      backgroundColor: bgColor,
-      padding: { x: 6, y: 3 }
-    }).setOrigin(0.5).setDepth(200);
+      fontSize: isStreak ? '20px' : '18px',
+      fontStyle: 'bold',
+      color: isStreak ? '#ff6d00' : '#1565C0',
 
-    this.tweens.add({
-      targets: popup,
-      y: popup.y - 50,
-      alpha: 0,
-      duration: 580,
-      ease: 'Power1.easeOut',
-      onComplete: () => popup.destroy()
-    });
-  }
+      // ขอบตัวอักษร
+      stroke: '#ffffff',
+      strokeThickness: 4,
+
+      // เงา
+      shadow: {
+        offsetX: 0,
+        offsetY: 3,
+        color: 'rgba(0,0,0,0.35)',
+        blur: 5,
+        stroke: true,
+        fill: true
+      },
+
+      align: 'center'
+    }
+  )
+    .setOrigin(0.5)
+    .setDepth(300)
+    .setScale(0.65)
+    .setAlpha(0);
+
+  // เด้งเข้ามา
+  this.tweens.add({
+    targets: popup,
+    scale: 1,
+    alpha: 1,
+    duration: 160,
+    ease: 'Back.easeOut'
+  });
+
+  // ลอยขึ้น + จางหาย
+  this.tweens.add({
+    targets: popup,
+    y: popup.y - 42,
+    alpha: 0,
+    duration: 650,
+    delay: 120,
+    ease: 'Cubic.easeOut',
+    onComplete: () => {
+      popup.destroy();
+    }
+  });
+}
 
   private _triggerDeductScorePopup(penalty: number): void {
     if (penalty <= 0) return;
@@ -952,26 +1012,62 @@ fontStyle: 'bold',
       onComplete: () => popup.destroy()
     });
   }
-
-  private _triggerCoinPopup(pts: number): void {
-    const popup = this.add.text(this.player.x + 20, this.player.y - 15, `🪙 +${pts}`, {
+private _triggerCoinPopup(pts: number): void {
+  const popup = this.add.text(
+    this.player.x + 18,
+    this.player.y - 28,
+    `🪙 +${pts}`,
+    {
       fontFamily: this.GAME_FONT,
-fontSize: '15px',
-fontStyle: 'bold',
-      color: '#b8860b',
-      backgroundColor: 'rgba(255,253,231,0.95)',
-      padding: { x: 5, y: 2 }
-    }).setOrigin(0.5).setDepth(200);
+      fontSize: '17px',
+      fontStyle: 'bold',
+      color: '#d89b00',
 
-    this.tweens.add({
-      targets: popup,
-      y: popup.y - 42,
-      alpha: 0,
-      duration: 500,
-      ease: 'Power1',
-      onComplete: () => popup.destroy()
-    });
-  }
+      // ขอบสีขาว
+      stroke: '#ffffff',
+      strokeThickness: 4,
+
+      // เงา
+      shadow: {
+        offsetX: 0,
+        offsetY: 3,
+        color: 'rgba(0,0,0,0.35)',
+        blur: 5,
+        stroke: true,
+        fill: true
+      },
+
+      align: 'center'
+    }
+  )
+    .setOrigin(0.5)
+    .setDepth(300)
+    .setScale(0.65)
+    .setAlpha(0);
+
+  // เด้งเข้ามา
+  this.tweens.add({
+    targets: popup,
+    scale: 1,
+    alpha: 1,
+    duration: 160,
+    ease: 'Back.easeOut'
+  });
+
+  // ลอยขึ้นแล้วหาย
+  this.tweens.add({
+    targets: popup,
+    x: popup.x + 8,
+    y: popup.y - 42,
+    alpha: 0,
+    duration: 650,
+    delay: 120,
+    ease: 'Cubic.easeOut',
+    onComplete: () => {
+      popup.destroy();
+    }
+  });
+}
 
   private _triggerStunPopup(): void {
     const popup = this.add.text(this.player.x, this.player.y - 25, 'มึนงง! (STUNNED)', {
@@ -1002,25 +1098,69 @@ fontStyle: 'bold',
     exp.on('animationcomplete', () => exp.destroy());
     this.cameras.main.shake(100, 0.008);
   }
+private streakBg: Phaser.GameObjects.Graphics | null = null;
 
-  private _showStreakIndicator(): void {
-    if (!this.scoreManager.isStreakActive()) {
-      if (this.streakText) { this.streakText.destroy(); this.streakText = null; }
-      return;
-    }
-    const streakN = this.scoreManager.getStreakCount();
-    if (!this.streakText) {
-      this.streakText = this.add.text(12, 48, '', {
-        fontFamily: this.GAME_FONT,
-fontSize: '12px',
-fontStyle: 'bold',
-        color: '#e65100',
-        backgroundColor: 'rgba(255,224,178,0.92)',
-        padding: { x: 8, y: 5 }
-      }).setScrollFactor(0).setDepth(200);
-    }
-    this.streakText.setText(`🔥 STREAK x${streakN} (x2 คะแนน)`);
+private _showStreakIndicator(): void {
+  if (!this.scoreManager.isStreakActive()) {
+    this.streakText?.destroy();
+    this.streakBg?.destroy();
+
+    this.streakText = null;
+    this.streakBg = null;
+    return;
   }
+
+  const streakN = this.scoreManager.getStreakCount();
+
+  // สร้างพื้นหลังขอบมน
+  if (!this.streakBg) {
+    this.streakBg = this.add.graphics();
+
+    this.streakBg.fillStyle(0xfff3e0, 0.96);
+    this.streakBg.fillRoundedRect(
+      12,
+      103,
+      155,
+      32,
+      10
+    );
+
+    this.streakBg.lineStyle(1.5, 0xffcc80, 0.9);
+    this.streakBg.strokeRoundedRect(
+      12,
+      103,
+      155,
+      32,
+      10
+    );
+
+    this.streakBg.setScrollFactor(0);
+    this.streakBg.setDepth(199);
+  }
+
+  // สร้างข้อความ
+  if (!this.streakText) {
+    this.streakText = this.add.text(
+      20,
+      109,
+      '',
+      {
+        fontFamily: this.GAME_FONT,
+        fontSize: '11px',
+        fontStyle: 'bold',
+        color: '#e65100',
+        align: 'left'
+      }
+    )
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(200);
+  }
+
+  this.streakText.setText(
+    `🔥 STREAK x${streakN}  •  x2 คะแนน`
+  );
+}
 
   // ─── Countdown ────────────────────────────────────────────────────────────
 
@@ -1583,31 +1723,36 @@ fontStyle: 'bold',
   this.showThemeTransition(newTheme);
 }
   // ─── Shop & Item Implementation ───────────────────────────────────────────
-
-  private checkShopTrigger(gridX: number, gridY: number): void {
-  if (this.isShopOpen) return;
-
+private checkShopTrigger(gridX: number, gridY: number): void {
   const lane = this.lanes.get(gridY);
 
+  // ไม่ใช่แถวร้าน → ไม่ทำอะไร
+  if (!lane || !lane.hasShop) {
+    return;
+  }
+
+  // ─────────────────────────────────────
+  // ผู้เล่นเข้ามาใน "แถวร้าน" = ผ่านร้าน
+  // นับทันที ไม่ต้องยืนตรงร้าน
+  // ─────────────────────────────────────
+  if (!this.passedShopRows.has(gridY)) {
+    this.passedShopRows.add(gridY);
+
+    this.shopsPassed++;
+
+    this.updateThemeByShopCount();
+
+    console.log(
+      `🛒 ผ่านร้านค้า ${this.shopsPassed} ร้าน | Theme: ${this.currentTheme}`
+    );
+  }
+
+  // เปิดร้านถ้าอยู่ใกล้ช่องร้าน
   if (
-    lane &&
-    lane.hasShop &&
+    !this.isShopOpen &&
     lane.shopCol !== null &&
     Math.abs(gridX - lane.shopCol) <= 1
   ) {
-    // ป้องกันนับร้านเดิมซ้ำ
-    if (!this.passedShopRows.has(gridY)) {
-      this.passedShopRows.add(gridY);
-
-      this.shopsPassed++;
-
-      this.updateThemeByShopCount();
-
-      console.log(
-        `🛒 ผ่านร้านค้า ${this.shopsPassed} ร้าน | Theme: ${this.currentTheme}`
-      );
-    }
-
     this.openShop();
   }
 }
@@ -1644,70 +1789,70 @@ const items = [
     id: 'shield',
     name: 'โล่บาเรีย',
     img: '/assets/items/shield.png',
-    price: 1,
+    price: 3,
     desc: 'กันการชนหรือจมน้ำ 1 ครั้ง'
   },
   {
     id: 'freezewater',
     name: 'แช่แข็งแม่น้ำ',
     img: '/assets/items/freezewater.png',
-    price: 1,
+    price: 2,
     desc: 'เปลี่ยนแม่น้ำเป็นน้ำแข็ง เดินข้ามได้เลย 6 วินาที'
   },
   {
     id: 'teleport',
     name: 'วาร์ปข้ามเลน',
     img: '/assets/items/teleport.png',
-    price: 1,
+    price: 4,
     desc: 'พุ่งตัวข้ามไปข้างหน้า 3 เลนทันที หลบรถหรือข้ามแม่น้ำได้'
   },
   {
     id: 'midas',
     name: 'เหรียญนำโชค',
     img: '/assets/items/midas.png',
-    price: 1,
+    price: 3,
     desc: 'รถที่ชนเราจะกลายเป็นเหรียญทอง 5 วินาที'
   },
   {
     id: 'shoes',
     name: 'รองเท้าสปริง',
     img: '/assets/items/shoes.png',
-    price: 1,
+    price: 2,
     desc: 'เดินเร็วขึ้น 50% นาน 6 วินาที'
   },
   {
     id: 'timestop',
     name: 'หยุดเวลา',
     img: '/assets/items/timestop.png',
-    price: 1,
+    price: 5,
     desc: 'หยุดขบวนรถยนต์ทั้งหมด 5 วินาที'
   },
   {
     id: 'timeslow',
     name: 'ชะลอเวลา',
     img: '/assets/items/timeslow.png',
-    price: 1,
+    price: 3,
     desc: 'ชะลอรถลงเหลือ 30% นาน 6 วินาที'
   },
   {
     id: 'score2x',
     name: 'คะแนน x2',
     img: '/assets/items/score2x.png',
-    price: 1,
+    price: 5,
     desc: 'คูณคะแนน 2 เท่า นาน 10 วินาที'
   },
   {
     id: 'cape',
     name: 'ผ้าคลุมบินได้',
     img: '/assets/items/cape.png',
-    price: 1,
+    price: 4,
     desc: 'บินผ่านรถ/ลอยเหนือน้ำอิสระ 5 วินาที'
   },
   {
     id: 'blast',
     name: 'ระเบิดพลัง',
     img: '/assets/items/blast.png',
-    price: 1,
+    price: 3,
     desc: 'ระเบิดเคลียร์รถรอบตัว 2 เลน'
   }
 ];

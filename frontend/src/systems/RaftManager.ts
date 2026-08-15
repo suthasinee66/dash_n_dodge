@@ -49,7 +49,7 @@ export class RaftManager {
 
       // Keep lane alive — try spawning a replacement when the lane is sparse
       const laneRafts = rafts.filter(r => r.gridY === lane.gridY);
-      if (laneRafts.length < 2) {
+      if (laneRafts.length < 3) {
         this._trySpawn(lane, laneRafts);
       }
     }
@@ -66,7 +66,7 @@ export class RaftManager {
     const y = lane.gridY * 60 + 30;
 
     // Spread positions so the lane looks populated but still has gaps
-    const positions = this._getSpreadPositions(2);
+    const positions = this._getSpreadPositions(3);
     let isShipToggle = false;
     for (const px of positions) {
       const size = this._randomSize();

@@ -19,6 +19,9 @@ export class Player extends Phaser.GameObjects.Sprite {
   // Raft-riding state
   public isRiding: boolean = false;
   public currentRaft: Raft | null = null;
+  // Waiting at map edge for a raft from the opposite side
+public isWaitingForRaft: boolean = false;
+public waitingSide: 'left' | 'right' | null = null;
 
   // Stun state
   public isStunned: boolean = false;
@@ -141,23 +144,65 @@ export class Player extends Phaser.GameObjects.Sprite {
    * and a raft is found under them.
    */
   public attachToRaft(raft: Raft): void {
-    this.isRiding = true;
-    this.currentRaft = raft;
-  }
+  this.isRiding = true;
+  this.currentRaft = raft;
+
+  // เจอแพฝั่งตรงข้ามแล้ว
+  this.isWaitingForRaft = false;
+  this.waitingSide = null;
+}
 
   /**
    * Drift horizontally with the attached raft every frame.
    * Called from GameScene.update() when isRiding is true.
    */
   public driftWithRaft(delta: number): void {
-    if (!this.isRiding || !this.currentRaft || this.isMoving) return;
-    const amount = (this.currentRaft.speed * delta) / 1000;
-    const drift = this.currentRaft.direction === 'right' ? amount : -amount;
-    this.x += drift;
+  if (!this.isRiding || !this.currentRaft || this.isMoving) return;
 
-    // Snap gridX to nearest column for collision logic
-    this.gridX = Math.round((this.x - 20) / 40);
+  const raft = this.currentRaft;
+  const mapWidth = this.columns * this.cellWidth; // 480
+  const amount = (raft.speed * delta) / 1000;
+  const drift = raft.direction === 'right' ? amount : -amount;
+
+  // ถ้ากำลังรอแพฝั่งตรงข้าม
+  // ห้ามขยับตามแพเดิมอีก
+  if (this.isWaitingForRaft) {
+    return;
   }
+
+  this.x += drift;
+
+  // ─────────────────────────────────────────
+  // แพออกทางขวา
+  // ─────────────────────────────────────────
+  if (raft.direction === 'right' && this.x >= mapWidth) {
+    this.x = mapWidth - 1;
+
+    this.isWaitingForRaft = true;
+    this.waitingSide = 'right';
+
+    return;
+  }
+
+  // ─────────────────────────────────────────
+  // แพออกทางซ้าย
+  // ─────────────────────────────────────────
+  if (raft.direction === 'left' && this.x <= 0) {
+    this.x = 1;
+
+    this.isWaitingForRaft = true;
+    this.waitingSide = 'left';
+
+    return;
+  }
+
+  // Update grid position
+  this.gridX = Phaser.Math.Clamp(
+    Math.round((this.x - 20) / this.cellWidth),
+    0,
+    this.columns - 1
+  );
+}
 
   // ─── Death poses ───────────────────────────────────────────────────────────
 
@@ -259,6 +304,8 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.isMoving = false;
     this.isRiding = false;
     this.currentRaft = null;
+    this.isWaitingForRaft = false;
+this.waitingSide = null;
     const skin = this.scene.registry.get('characterSkin') || 'man';
     this.setTexture(skin);
     this.clearTint();

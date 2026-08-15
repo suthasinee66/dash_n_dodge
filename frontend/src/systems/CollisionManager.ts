@@ -149,15 +149,20 @@ export class CollisionManager {
       }
     }
   }
+public checkOutOfBounds(player: Player, onDrown: () => void): void {
+  if (this.hasCollided) return;
 
-  /** Check if player is off the left/right screen edge while riding */
-  public checkOutOfBounds(player: Player, onDrown: () => void): void {
-    if (this.hasCollided) return;
-    if (player.x < -20 || player.x > 500) {
-      this.hasCollided = true;
-      onDrown();
-    }
+  // ถ้าอยู่บนแพ อนุญาตให้ออกขอบได้
+  // เพราะแพจะวนกลับอีกฝั่ง
+  if (player.isRiding && player.currentRaft) {
+    return;
   }
+
+  if (player.x < -20 || player.x > 500) {
+    this.hasCollided = true;
+    onDrown();
+  }
+}
 
   // ─── Internal ─────────────────────────────────────────────────────────────
 
