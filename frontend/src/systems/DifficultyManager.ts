@@ -57,7 +57,7 @@ export class DifficultyManager {
       case 'hard':
         return 'ยาก';
       case 'extreme':
-        return 'ท้าทายขีดจำกัด';
+        return 'ท้าทาย';
     }
   }
 }
